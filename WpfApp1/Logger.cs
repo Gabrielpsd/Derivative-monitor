@@ -4,7 +4,7 @@ using System.IO;
 public static class Logger
 {
     private static readonly string _filePath = "debug.log";
-    private static Boolean LoggOptions = false;
+    private static Boolean LoggOptions = true;
     private static Boolean Logging = true;
 
     public static void Log(string message)
@@ -26,9 +26,9 @@ public static class Logger
 
         foreach (var option in options)
         {
-            Logger.Log(option.ToString()); // ✅ Best practice: override ToString() on OptionData
+            Logger.Log($"{option.Codigo.ToString()}|{option.PrecoExercicio.ToString()}|{option.Vencimento.ToString()}");
         }
-
+            
         Logger.Log($"--- End of {label} ---");
     }
 }

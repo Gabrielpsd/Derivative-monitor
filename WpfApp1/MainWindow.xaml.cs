@@ -22,12 +22,13 @@ namespace WpfApp1
         public  MainWindow()
         {
             InitializeComponent();
-            DataContext = options;
         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             await loadDataAsync();
+            Logger.Log("Data loaded and application is ready.");
+            DataContext = options;
         }
         private async Task loadDataAsync()
         {
@@ -60,7 +61,6 @@ namespace WpfApp1
                     options.PutOptions?.Add(putOption);
                 }
             }
-
             
             Logger.Log("Options data populated successfully for ticker: " + config.Ticker);
             DataBaseManager.Initialize(config.DatabasePath);
@@ -69,70 +69,6 @@ namespace WpfApp1
             DataBaseManager.SaveOptions(config.DatabasePath, config.Ticker, options);
 
             Logger.Log("Options data saved to database successfully for ticker: " + config.Ticker);
-
-            /*
-            if (RtdClientObj == null)
-            {
-                Console.Error.WriteLine("Error initializing RTD client.");
-                return;
-            }
-
-            await RtdClientObj.InitializeRtdServerAsync();
-
-            if (!RtdClientObj.IsRtdConnected)
-            {
-                Console.Error.WriteLine("Error connecting to RTD server.");
-                return;
-            }
-
-            if (options == null || options.CallOptions == null)
-            {
-                Console.Error.WriteLine("Error populating options data.");
-                return;
-            }
-
-
-            foreach (var item in options.CallOptions)
-            {
-                var MarketData = RtdClientObj.RequestDataFromRtd(item.Codigo + config.TicketSuffix);
-
-                if (MarketData == null)
-                {
-                    Console.Error.WriteLine("Error retrieving market data from RTD server.");
-                    return;
-                }
-
-                
-                Console.Write($"Ticker:{MarketData.Ticker} |   ");
-                Console.Write($"OpenPrice:{MarketData.OpenPrice} |   ");
-                Console.Write($"ClosePrice:{MarketData.ClosePrice} |   ");
-                Console.Write($"MarketData:{MarketData.LastPrice} |   ");
-                Console.WriteLine($"MovingAverage:{MarketData.MovingAverage} |   ");
-                CreateTickerUI(MarketData.Ticker);
-
-            }
-
-
-            foreach (var item in options.PutOptions)
-            {
-                var MarketData = RtdClientObj.RequestDataFromRtd(item.Codigo + config.TicketSuffix);
-
-                if (MarketData == null)
-                {
-                    Console.Error.WriteLine("Error retrieving market data from RTD server.");
-                    return;
-                }
-
-                
-                Console.WriteLine($"Ticker:{MarketData.Ticker} |   ");
-                Console.Write($"OpenPrice:{MarketData.OpenPrice} |   ");
-                Console.Write($"ClosePrice:{MarketData.ClosePrice} |   ");
-                Console.Write($"MarketData:{MarketData.LastPrice} |   ");
-                Console.WriteLine($"MovingAverage:{MarketData.MovingAverage} |   ");
-
-                CreateTickerUI(MarketData.Ticker);
-
-            }*/
 
         }
 
