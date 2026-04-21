@@ -1,0 +1,94 @@
+﻿<Window x:Class="WpfApp1.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfApp1"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded">
+    <Grid>
+
+        <!-- ROWS -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Top summary -->
+            <RowDefinition Height="*"/>
+            <!-- Tables -->
+        </Grid.RowDefinitions>
+
+        <!-- TOP BAR -->
+        <StackPanel Grid.Row="0"
+                Orientation="Horizontal"
+                Margin="10">
+
+            <TextBox x:Name="TickerInput"
+                 Width="100"
+                 Margin="5" 
+                 IsEnabled="False"
+                 />
+
+            <Button 
+                Name="LoadButton"
+                Content="Load"
+                Click="Load_Click"
+                Margin="5"/>
+
+            <Label Content="Fechamento:"
+               FontSize="20"
+               Margin="20 0 0 0"/>
+
+            <Label x:Name="LabelClose"
+               Content="0.00"
+               FontSize="24"
+               FontWeight="Bold"
+               Margin="5"/>
+        </StackPanel>
+
+        <!-- MAIN AREA -->
+        <Grid Grid.Row="1">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- CALLS -->
+            <GroupBox Header="CALL OPTIONS"
+                  Grid.Column="0"
+                  Margin="4">
+
+                <DataGrid ItemsSource="{Binding CallOptions}"
+                      AutoGenerateColumns="False">
+
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Simbolo" Binding="{Binding Codigo}" Width="120"/>
+                        <DataGridTextColumn Header="Preço" Binding="{Binding PrecoExercicio}" Width="100"/>
+                        <DataGridTextColumn Header="Venc" Binding="{Binding Vencimento}" Width="80"/>
+                        <DataGridTextColumn Header="Estilo" Binding="{Binding Estilo}" Width="100"/>
+                    </DataGrid.Columns>
+
+                </DataGrid>
+            </GroupBox>
+
+            <!-- PUTS -->
+            <GroupBox Header="PUT OPTIONS"
+                  Grid.Column="2"
+                  Margin="4">
+
+                <DataGrid ItemsSource="{Binding PutOptions}"
+                      AutoGenerateColumns="False">
+
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Simbolo" Binding="{Binding Codigo}" Width="120"/>
+                        <DataGridTextColumn Header="Preço" Binding="{Binding PrecoExercicio}" Width="100"/>
+                        <DataGridTextColumn Header="Venc" Binding="{Binding Vencimento}" Width="80"/>
+                        <DataGridTextColumn Header="Estilo" Binding="{Binding Estilo}" Width="100"/>
+                    </DataGrid.Columns>
+
+                </DataGrid>
+            </GroupBox>
+
+        </Grid>
+    </Grid>
+</Window>
