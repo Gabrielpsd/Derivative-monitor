@@ -14,25 +14,57 @@ public class RTDClient
         //empty constructor
     }
 
+    public void DisposeRtdServer()
+    {
+        if (_rtdServer != null)
+        {
+            _rtdServer.ServerTerminate();
+            _rtdServer = null;
+            _serverState = -1;
+        }
+    }
+
     public async Task InitializeRtdServerAsync()
     {
 
-        try
+
+        if (_rtdServer != null && _serverState == 1)
+            {
+                Logger.Log("RTD server already running.");
+                return ;
+            }
+        
+        await Task.Run(() =>
         {
-            // Create the RTD server
-            _rtdServer = new RtdServer();
-
-            // Start RTD server
-            _serverState = _rtdServer.ServerStart(_updateEvent);
-
-        }
-        catch (Exception e)
-        {
-            throw new Exception("RTD server initialization failed");
-
-
-        }
+            try
+            {
+                _rtdServer = new RtdServer();
+                _rtdServer.ServerStart(_updateEvent);
+                _serverState = 1;
+                Logger.Log("RTD server initialized successfully.");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Failed to initialize RTD server: {ex.Message}");
+                return false;
+            }
+        });
     }
+
+    public async Task StopAsync()
+    {
+        if (_rtdServer == null)
+            return;
+
+        await Task.Run(() =>
+        {
+            _rtdServer.ServerTerminate();
+            _rtdServer = null;
+            _serverState = -1;
+        });
+    }
+
     public MarketData? RequestDataFromRtd(string ticker)
     {
         if (_rtdServer == null) return null;

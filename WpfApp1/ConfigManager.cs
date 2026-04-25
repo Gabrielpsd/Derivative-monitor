@@ -47,5 +47,14 @@ public static class ConfigManager
 
         if (string.IsNullOrWhiteSpace(config.DatabasePath))
             throw new Exception("DatabasePath is missing in config.json");
+
+        if (string.IsNullOrWhiteSpace(config.TicketSuffix))
+            throw new Exception("TicketSuffix is missing in config.json");
+
+        if (config.RefreshIntervalMilliseconds <= 0)
+            throw new Exception("RefreshIntervalMilliseconds must be greater than 0 in config.json");
+
+        if (config.ScraperIntervalMinutes <= 0)
+            throw new Exception("ScraperIntervalMinutes must be greater than 0 in config.json");
     }
 }
