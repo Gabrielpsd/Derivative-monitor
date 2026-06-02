@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 public static class Logger
 {
@@ -7,6 +6,14 @@ public static class Logger
     private static Boolean LoggOptions = true;
     private static Boolean Logging = true;
 
+    public static void configureLogging(bool LogOptions, bool logSteps)
+    {
+        Logger.Log($"Logging configured. LogOptions: {LogOptions}, LogSteps: {logSteps}");
+
+        LoggOptions = LogOptions;
+        Logging = logSteps;
+
+    }
     public static void Log(string message)
     {
         if (Logging is false)
@@ -22,13 +29,15 @@ public static class Logger
         if (LoggOptions is false)
             return;
 
-        Logger.Log($"--- {label} ({options.Count()} items) ---");
+        var list = options as IList<OptionData> ?? options.ToList();
 
-        foreach (var option in options)
+        Logger.Log($"--- {label} ({list.Count} items) ---");
+
+        foreach (var option in list)
         {
             Logger.Log($"{option.Codigo.ToString()}|{option.PrecoExercicio.ToString()}|{option.Vencimento.ToString()}");
         }
-            
+
         Logger.Log($"--- End of {label} ---");
     }
 }

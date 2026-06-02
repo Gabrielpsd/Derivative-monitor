@@ -24,4 +24,41 @@
 
     // intervalo de tempo em minutos para buscar novas opções, ex: 60 para buscar novas opções a cada 60 minutos.
     public int ScraperIntervalMinutes { get; set; } = 60;
+
+    // opção para habilitar ou desabilitar logs das opções (opções retornadas no WebScraping), ex: true para habilitar logs detalhados, false para desabilitar.
+    public bool debugOptions { get; set; } = false;
+
+    // opção para habilitar ou desabilitar logs dos passos do processo (início do scraping, início da atualização, etc.), ex: true para habilitar logs detalhados, false para desabilitar.
+    public bool debugSteps { get; set; } = false;
+
+    public Dictionary<string, string> CallParametersToMonitor { get; set; } = new Dictionary<string, string>();
+
+    public Dictionary<string, string> PutParametersToMonitor { get; set; } = new Dictionary<string, string>();
+
+    public Dictionary<string, string> FieldFormats { get; set; } = new Dictionary<string, string>();
+
+    public UiColors Colors { get; set; } = new UiColors();
+
+    public Dictionary<string, decimal> AlertThresholdsPercentage { get; set; } = new Dictionary<string, decimal>();
+    public Dictionary<string, string> Chart { get; set; } = new Dictionary<string, string>();
+}
+
+public class UiColors
+{
+    public string StrikeColumn { get; set; } = "#D3D3D3"; // LightGray
+    public string Alert { get; set; } = "#FF6B6B";        // Red-ish
+    public string CallLine { get; set; } = "#E0E0E0";     // Light border
+
+    public string CallFontColor { get; set; } = "#000000"; // Black
+    public string PutLine { get; set; } = "#E0E0E0";     // Light border
+
+    public string PutFontColor { get; set; } = "#000000"; // Black
+    public string GridLine { get; set; } = "#E0E0E0";     // Light border
+
+    public string ChartCall { get; set; } = "#4CAF50";     // Green
+
+    public string ChartPut { get; set; } = "#F44336";     // Red
+
+    public string ChartActualPrice { get; set; } = "#2196F3";     // Blue
+
 }

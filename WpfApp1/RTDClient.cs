@@ -1,5 +1,6 @@
-﻿using System;
-using RTDTrading;
+﻿using RTDTrading;
+using System.Collections.ObjectModel;
+
 public class RTDClient
 {
     private IRtdServer? _rtdServer;
@@ -9,19 +10,10 @@ public class RTDClient
     private readonly RtdUpdateEvent _updateEvent = new();
     public bool IsRtdConnected => _serverState == 1;
 
-    public RTDClient() 
+    private Dictionary<int, TopicBinding> _topicBindings = new();
+    public RTDClient()
     {
         //empty constructor
-    }
-
-    public void DisposeRtdServer()
-    {
-        if (_rtdServer != null)
-        {
-            _rtdServer.ServerTerminate();
-            _rtdServer = null;
-            _serverState = -1;
-        }
     }
 
     public async Task InitializeRtdServerAsync()
@@ -29,11 +21,11 @@ public class RTDClient
 
 
         if (_rtdServer != null && _serverState == 1)
-            {
-                Logger.Log("RTD server already running.");
-                return ;
-            }
-        
+        {
+            Logger.Log("RTD server already running.");
+            return;
+        }
+
         await Task.Run(() =>
         {
             try
@@ -65,92 +57,159 @@ public class RTDClient
         });
     }
 
-    public MarketData? RequestDataFromRtd(string ticker)
+    public async Task ConnectDataToRTd(List<OptionsMonitored> optionsToConnect, ObservableCollection<OptionsMonitored> optionsBeingMonitored, AppConfig _appConfig, Dictionary<decimal, ChartRow> _chartLookup, ObservableCollection<ChartRow> _chartRows, StockData _stockData)
     {
-        if (_rtdServer == null) return null;
+        if (_rtdServer == null) return;
 
-        object? results;
-        // Abertura do Dia Atual
-        Array topicAbe = new object[] { ticker, "ABE" };
-        results = _rtdServer.ConnectData(901, topicAbe, false);
-        string openPrice = results.ToString() ?? "Indisponível";
+        int topicId = 3; // Start topic IDs from 3
 
-        // Fechamento do Dia Anterior
-        Array topicFec = new object[] { ticker, "FEC" };
-        results = _rtdServer.ConnectData(902, topicFec, false);
-        string closePrice = results.ToString() ?? "Indisponível";
+        object? result;
+        Array topicStock = new object[] { _appConfig.Ticker + _appConfig.TicketSuffix, "ABE" };
+        result = _rtdServer.ConnectData(1, topicStock, true);
+        _stockData.OpeningPrice = FieldFormatter.Format(result.ToString(), "money_br");
 
-        // Último Preço do Dia Atual
-        Array topicUlt = new object[] { ticker, "ULT" };
-        results = _rtdServer.ConnectData(903, topicUlt, true);
-        string lastPrice = results.ToString() ?? "Indisponível";
+        topicStock = new object[] { _appConfig.Ticker + _appConfig.TicketSuffix, "ULT" };
+        result = _rtdServer.ConnectData(2, topicStock, true);
+        _stockData.LastPrice = FieldFormatter.Format(result.ToString(), "money_br");
 
-        // Média Móvel
-        Array topicMa = new object[] { ticker, "3" };
-        results = _rtdServer.ConnectData(904, topicMa, true);
-        string movingAverage = results.ToString() ?? "Indisponível";
-
-        MarketData marketData = new()
+        foreach (var option in optionsToConnect)
         {
-            Ticker = ticker,
-            OpenPrice = openPrice,
-            ClosePrice = closePrice,
-            LastPrice = lastPrice,
-            MovingAverage = movingAverage
-        };
+            var chartRow = new ChartRow
+            {
+                Strike = option.Strike
+            };
 
-        return marketData;
+            _chartRows.Add(chartRow);
+            _chartLookup[option.Strike] = chartRow;
+
+            Logger.Log($"Processing option: {option}");
+            // Connect Call option
+            if (!string.IsNullOrEmpty(option.CallCodigo))
+            {
+                option.CallParameters = new Dictionary<string, string> { };
+                option.CallTopics = new Dictionary<string, string> { };
+                foreach (var parameter in _appConfig.CallParametersToMonitor)
+                {
+                    object? results;
+                    Array topic = new object[] { option.CallCodigo + _appConfig.TicketSuffix, parameter.Value };
+                    results = _rtdServer.ConnectData(topicId, topic, true);
+                    // parameter is a key value pair in format "ParameterName": "FormatType",
+                    // like "Abertura":"ABE", and parameter.Value is ABE 
+                    option.CallParameters[parameter.Value] = FieldFormatter.Format(results.ToString(), _appConfig.FieldFormats[parameter.Value]);
+                    Logger.Log($"Updated option CallParameters with topic ID: {topicId}, value: {option.CallParameters[parameter.Value]}");
+                    option.CallTopics[topicId.ToString()] = parameter.Value;
+
+                    if (parameter.Value == _appConfig.Chart["Parameter"].ToString())
+                    {
+                        _chartLookup[option.Strike].Parameter = parameter.Value;
+                        _chartLookup[option.Strike].CallValue = Convert.ToDouble(option.CallParameters[parameter.Value]);
+                    }
+
+                    // Store the binding of topic ID to option and parameter for later updates
+                    // When the update is called the return value is only the topic ID and the new value,
+                    // so we need to know which option and parameter to update
+                    _topicBindings[topicId] = new TopicBinding
+                    {
+                        Option = option,
+                        IsCall = true,
+                        Parameter = parameter.Value
+                    };
+
+                    topicId++;
+                }
+            }
+            // Connect Put option
+            if (!string.IsNullOrEmpty(option.PutCodigo))
+            {
+                option.PutParameters = new Dictionary<string, string> { };
+                option.PutTopics = new Dictionary<string, string> { };
+                foreach (var parameter in _appConfig.PutParametersToMonitor)
+                {
+                    object? results;
+                    Array topic = new object[] { option.PutCodigo + _appConfig.TicketSuffix, parameter.Value };
+                    results = _rtdServer.ConnectData(topicId, topic, true);
+                    option.PutParameters[parameter.Value] = FieldFormatter.Format(results.ToString(), _appConfig.FieldFormats[parameter.Value]);
+                    Logger.Log($"Updated option PutParameters with topic ID: {topicId}, value: {option.PutParameters[parameter.Value]}");
+                    option.PutTopics[topicId.ToString()] = parameter.Value;
+
+                    if (parameter.Value == _appConfig.Chart["Parameter"].ToString())
+                    {
+                        _chartLookup[option.Strike].Parameter = parameter.Value;
+                        _chartLookup[option.Strike].PutValue = Convert.ToDouble(option.PutParameters[parameter.Value]);
+                    }
+
+                    _topicBindings[topicId] = new TopicBinding
+                    {
+                        Option = option,
+                        IsCall = false,
+                        Parameter = parameter.Value
+                    };
+                    topicId++;
+                }
+            }
+            optionsBeingMonitored.Add(option);
+        }
     }
 
-    public MarketData? UpdateRtdData()
+    public void UpdateRtdData(ObservableCollection<OptionsMonitored> optionsBeingMonitored, AppConfig _appConfig, StockData _stockData)
     {
-        if (_rtdServer == null) return null;
+        if (_rtdServer == null) return;
 
-        Console.WriteLine("Im here");
-        int topicsCount = 0;
-        object[,]? results = (object[,])_rtdServer.RefreshData(903);
-        Console.WriteLine(results);
-        Console.WriteLine("Im here (0)");
 
-        if (topicsCount == 0) return null;
-        Console.WriteLine("Im here (1)");
+        int topicsToRefresh = 0;
 
-        if (results.GetLength(1) <= 0) return null;
-        Console.WriteLine("Im here (2)");
-
-        string last = string.Empty, ma = string.Empty;
-
-        for (int columnIndex = 0; columnIndex < results.GetLength(1); columnIndex++)
+        object[,]? result_justCallingRefresh = (object[,]?)_rtdServer.RefreshData(ref topicsToRefresh);
+        Logger.Log("Called RefreshData with topic ID: 0 to refresh all topics, RTD result: " + result_justCallingRefresh);
+        Logger.Log($"Number of topics to refresh: {topicsToRefresh}");
+        if (topicsToRefresh > 0)
         {
-            
-        Console.WriteLine("Im here(3)");
-
-            object topicId = results[0, columnIndex];
-            object topicValue = results[1, columnIndex];
-
-            switch ((int)topicId)
+            Logger.Log($"Received some topic: {result_justCallingRefresh}");
+            if (result_justCallingRefresh.GetLength(1) != null)
             {
-                case 903:
-                    last = topicValue.ToString() ?? string.Empty;
-                    break;
-                case 904:
-                    ma = topicValue.ToString() ?? string.Empty;
-                    break;
+                for (int columnIndex = 0; columnIndex < result_justCallingRefresh.GetLength(1); columnIndex++)
+                {
+                    object topicId = Convert.ToInt32(result_justCallingRefresh[0, columnIndex]);
+                    object topicValue = result_justCallingRefresh[1, columnIndex]?.ToString() ?? "";
+
+                    Logger.Log($"Received topic ID: {topicId}, value: {topicValue} from RefreshData");
+                    if ((int)topicId == 2)
+                    {
+                        _stockData.LastPrice = FieldFormatter.Format(topicValue.ToString(), _appConfig.FieldFormats["money_br"]);
+                        Logger.Log($"Updated stock price with value: {_stockData.LastPrice}");
+                    }
+                    else if (_topicBindings.TryGetValue((int)topicId, out var binding))
+                    {
+                        if (binding.IsCall)
+                        {
+                            binding.Option.CallParameters[binding.Parameter] = FieldFormatter.Format(topicValue.ToString(), _appConfig.FieldFormats[binding.Parameter]);
+                            Logger.Log($"Updated option {binding.Option.CallCodigo} CallParameters[{binding.Parameter}] with value: {binding.Option.CallParameters[binding.Parameter]}");
+                        }
+                        else
+                        {
+                            binding.Option.PutParameters[binding.Parameter] = FieldFormatter.Format(topicValue.ToString(), _appConfig.FieldFormats[binding.Parameter]);
+                            Logger.Log($"Updated option {binding.Option.PutCodigo} PutParameters[{binding.Parameter}] with value: {binding.Option.PutParameters[binding.Parameter]}");
+                        }
+                    }
+                    else
+                    {
+                        Logger.Log($"No binding found for topic ID: {topicId}");
+                    }
+                }
+
             }
         }
 
-        MarketData marketData = new()
-        {
-            LastPrice = last,
-            MovingAverage = ma
-        };
-
-        return marketData;
-
     }
 
-}
+    public class TopicBinding
+    {
+        public OptionsMonitored Option { get; set; }
 
+        public bool IsCall { get; set; }
+
+        public string Parameter { get; set; }
+    }
+}
 public class RtdUpdateEvent : IRTDUpdateEvent
 {
     public long Count { get; set; }
@@ -173,14 +232,14 @@ public class RtdUpdateEvent : IRTDUpdateEvent
     }
 }
 public class MarketData
-    {
-        public string? Ticker { get; set; }
+{
+    public string? Ticker { get; set; }
 
-        public string? OpenPrice { get; set; }
+    public string? OpenPrice { get; set; }
 
-        public string? ClosePrice { get; set; }
+    public string? ClosePrice { get; set; }
 
-        public string? LastPrice { get; set; }
+    public string? LastPrice { get; set; }
 
-        public string? MovingAverage { get; set; }
-    }
+    public string? MovingAverage { get; set; }
+}

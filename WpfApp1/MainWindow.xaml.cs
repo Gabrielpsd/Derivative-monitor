@@ -1,15 +1,9 @@
-﻿using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Collections.ObjectModel;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace WpfApp1
 {
@@ -22,11 +16,115 @@ namespace WpfApp1
         private CancellationTokenSource _cts = new();
         private AppConfig _appConfig = new AppConfig();
         private bool loopingIsRunning = false;
-
+        private ObservableCollection<OptionsMonitored> _optionsMonitored { get; set; } = new();
         private RTDClient? _rtdClient = new RTDClient();
-        public  MainWindow()
+        private StockData _stockData = new();
+        // when I update the _chartLookup, automatically update the _chartRows collection that is binded to the chart,
+        // so I can keep the chart updated with the latest data without having to manually refresh it
+
+        //I'll only handle and modify the _charLookup
+        private Dictionary<decimal, ChartRow> _chartLookup = new();
+
+        // the _chartRows is the collection that is binded to the chart, so when I update it, the chart will be updated automatically
+        private ObservableCollection<ChartRow> _chartRows = new();
+
+        public Brush GridLineBrush { get; set; }
+        public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void BuildDynamicColumns()
+        {
+            Logger.Log("Building dynamic columns for DataGrid based on monitored parameters...");
+            OptionsGrid.Columns.Clear();
+
+            // ------------------------
+            // CALL SIDE
+            // ------------------------
+
+            Logger.Log("Adding CALL side columns...");
+            var reversedParams = _appConfig.CallParametersToMonitor.AsEnumerable().Reverse().ToList();
+            var callBrush = ColorHelper.FromHex(_appConfig.Colors.CallLine);
+            var putBrush = ColorHelper.FromHex(_appConfig.Colors.PutLine);
+            var strikeBrush = ColorHelper.FromHex(_appConfig.Colors.StrikeColumn);
+            var alertBrush = ColorHelper.FromHex(_appConfig.Colors.Alert);
+
+            var callStyle = new Style(typeof(TextBlock));
+
+            //callStyle.Setters.Add(new Setter(TextBlock.BackgroundProperty, Brushes.Transparent));
+            callStyle.Setters.Add(new Setter(TextBlock.ForegroundProperty, ColorHelper.FromHex(_appConfig.Colors.CallFontColor)));
+            callStyle.Setters.Add(new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Center));
+
+            Logger.Log("Adding CALL parameter columns in reverse order...");
+            foreach (var param in reversedParams)
+            {
+
+                OptionsGrid.Columns.Add(new DataGridTextColumn
+                {
+                    Header = param.Key,
+                    Binding = new Binding($"CallParameters[{param.Value}]"),
+                    Width = new DataGridLength(1, DataGridLengthUnitType.Star),
+                    CellStyle = CreateCellStyleHelper.CreateCellStyle(callBrush, alertBrush)
+                });
+            }
+
+            Logger.Log("Adding CALL code column...");
+            OptionsGrid.Columns.Add(new DataGridTextColumn
+            {
+                Header = "Call Código",
+                Binding = new Binding("CallCodigo"),
+                Width = new DataGridLength(1, DataGridLengthUnitType.Star),
+                CellStyle = CreateCellStyleHelper.CreateCellStyle(callBrush, alertBrush)
+            });
+
+            Logger.Log("Adding STRIKE column...");
+            var strikeStyle = new Style(typeof(TextBlock));
+            strikeStyle.Setters.Add(new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Center));
+            strikeStyle.Setters.Add(new Setter(TextBlock.FontWeightProperty, FontWeights.Bold));
+            strikeStyle.Setters.Add(new Setter(TextBlock.BackgroundProperty, strikeBrush));
+
+            OptionsGrid.Columns.Add(new DataGridTextColumn
+            {
+                Header = "STRIKE",
+                Binding = new Binding("Strike"),
+                Width = new DataGridLength(1.2, DataGridLengthUnitType.Star),
+                ElementStyle = strikeStyle
+            });
+
+
+            // ------------------------
+            // PUT SIDE
+            // ------------------------
+            Logger.Log("Adding PUT side columns...");
+            var putStyle = new Style(typeof(TextBlock));
+            //putStyle.Setters.Add(new Setter(TextBlock.BackgroundProperty, putBrush));
+            putStyle.Setters.Add(new Setter(TextBlock.ForegroundProperty, ColorHelper.FromHex(_appConfig.Colors.PutFontColor)));
+            putStyle.Setters.Add(new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Center));
+
+            OptionsGrid.Columns.Add(new DataGridTextColumn
+            {
+                Header = "Put Código",
+                Binding = new Binding("PutCodigo"),
+                Width = new DataGridLength(1, DataGridLengthUnitType.Star),
+                CellStyle = CreateCellStyleHelper.CreateCellStyle(putBrush, alertBrush)
+            });
+
+            Logger.Log("Adding PUT parameter columns...");
+            foreach (var param in _appConfig.PutParametersToMonitor)
+            {
+
+                OptionsGrid.Columns.Add(new DataGridTextColumn
+                {
+                    Header = param.Key,
+                    Binding = new Binding($"PutParameters[{param.Value}]"),
+                    Width = new DataGridLength(1, DataGridLengthUnitType.Star),
+                    CellStyle = CreateCellStyleHelper.CreateCellStyle(putBrush, alertBrush)
+                });
+            }
+
+
+
         }
 
         private async void ConnectDataLoop(object sender, RoutedEventArgs e)
@@ -34,6 +132,28 @@ namespace WpfApp1
             if (!loopingIsRunning)
             {
                 Logger.Log("Starting loops...");
+                if (_rtdClient == null || !_rtdClient.IsRtdConnected)
+                {
+                    Logger.Log("Loop was called but server is not initialized.");
+                    return;
+                }
+
+                if (options == null || options.CallOptions == null || options.PutOptions == null || (options.CallOptions.Count == 0 && options.PutOptions.Count == 0))
+                {
+                    Logger.Log("Connect was called, populating options object");
+                    options = await ProgramInterface.PopulatesOptionObject(_appConfig.Ticker, _appConfig);
+                }
+
+                var data = OptionMapper.BuildOptionRows(options, _appConfig);
+                Logger.Log("Building data rows for RTD connection...");
+                Logger.Log("Connecting data to RTD server...");
+                await _rtdClient.ConnectDataToRTd(data, _optionsMonitored, _appConfig, _chartLookup, _chartRows, _stockData);
+                OptionsGrid.ItemsSource = _optionsMonitored;
+                LabelClose.Content = _stockData.LastPrice;
+                LabelOpening.Content = _stockData.OpeningPrice;
+
+                ChartHandler.BuildChart(_chartLookup, _appConfig, WpfPlot1, _stockData);
+
                 _cts = new CancellationTokenSource();
                 loopingIsRunning = true;
                 ConnectDataLoopButtonTextBlock.Foreground = new SolidColorBrush(Colors.White);
@@ -70,28 +190,18 @@ namespace WpfApp1
             ConfigManager.Validate(_appConfig);
 
             Logger.Log("Configuration validated successfully. Ticker: " + _appConfig.Ticker);
+            Logger.configureLogging(_appConfig.debugOptions, _appConfig.debugSteps);
+            Logger.Log($"Configuration loaded: {JsonSerializer.Serialize(_appConfig, new JsonSerializerOptions { WriteIndented = true })}");
+
             TickerInput.Text = _appConfig.Ticker;
-            var optionsRequest = await ProgramInterface.PopulatesOptionObject(_appConfig.Ticker, _appConfig);
 
-            if(optionsRequest != null) {
+            //OptionsGrid.ItemsSource = data;
 
-                if(options.PutOptions != null)
-                    options.PutOptions.Clear();
-                
-                if(options.CallOptions != null)
-                    options.CallOptions.Clear();
-            
-                foreach (var callOption in optionsRequest.CallOptions)
-                {
-                    options.CallOptions?.Add(callOption);
-                }
-            
-                foreach (var putOption in optionsRequest.PutOptions)
-                {
-                    options.PutOptions?.Add(putOption);
-                }
-            }
-            
+            Logger.Log("Building dynamic columns for DataGrid based on monitored parameters...");
+            BuildDynamicColumns();
+
+            GridLineBrush = ColorHelper.FromHex(_appConfig.Colors.GridLine);
+
             Logger.Log("Options data populated successfully for ticker: " + _appConfig.Ticker);
             DataBaseManager.Initialize(_appConfig.DatabasePath);
 
@@ -106,7 +216,7 @@ namespace WpfApp1
         {
             base.OnClosed(e);
 
-            _rtdClient?.DisposeRtdServer();
+            _rtdClient?.StopAsync();
             Logger.Log("RTD server disposed");
             StopLoops();
         }
@@ -114,7 +224,7 @@ namespace WpfApp1
         {
             // temporary empty handler
             Logger.Log("Starting RTD server...");
-            if(_rtdClient == null)
+            if (_rtdClient == null)
             {
                 Logger.Log("RTD client instance is null. Creating new instance...");
                 _rtdClient = new RTDClient();
@@ -135,8 +245,8 @@ namespace WpfApp1
                 ConnectServerButtonTextBlock.Foreground = new SolidColorBrush(Colors.Black);
                 StopLoops();
             }
-            
-           
+
+
         }
 
         private async Task ShowLoadingAnimation(Button button, int durationMs = 3000)
@@ -157,6 +267,7 @@ namespace WpfApp1
 
         private async void StartLoops()
         {
+
             _ = StartRtdLoop();
             _ = StartScraperLoop();
         }
@@ -167,14 +278,9 @@ namespace WpfApp1
             {
                 try
                 {
-                    var data = _rtdClient.UpdateRtdData();
+                    if (_rtdClient != null && _rtdClient.IsRtdConnected)
+                        _rtdClient.UpdateRtdData(_optionsMonitored, _appConfig, _stockData);
 
-                    if (data != null)
-                    {
-                        // update UI here
-                        // Example:
-                        // UpdateGrid(data);
-                    }
                 }
                 catch (Exception ex)
                 {
@@ -215,27 +321,11 @@ namespace WpfApp1
             _cts.Cancel();
         }
 
-        private async Task UpdatePriceAsync(Label label, string newValue)
-        {
-            var oldValue = label.Content?.ToString();
-
-            if (oldValue == newValue)
-                return;
-
-            label.Content = newValue;
-
-            // Change color (green for example)
-            label.Background = new SolidColorBrush(Colors.LightGreen);
-
-            await Task.Delay(3000);
-
-            // Restore original color
-            label.Background = new SolidColorBrush(Colors.WhiteSmoke);
-        }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             await loadDataAsync();
+            DataContext = this;
         }
     }
 

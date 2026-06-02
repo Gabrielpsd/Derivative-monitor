@@ -7,6 +7,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfApp1"
+        xmlns:wpf="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded">
     <Grid>
@@ -47,7 +48,7 @@
                         Width="40"
                         Height="25" ToolTip="Iniciar Servidor RTD"
                     >
-                    
+
                     <TextBlock x:Name="ConnectServerButtonTextBlock"
                                 Text="&#xE7E8;" 
                                 FontFamily="Segoe MDL2 Assets"
@@ -89,6 +90,18 @@
                        FontSize="16"
                        FontWeight="Bold"
                        VerticalAlignment="Center"/>
+                
+                <Label Content="Abertura:"
+                       Foreground="White"
+                       FontSize="13"
+                       VerticalAlignment="Center"/>
+
+                <Label x:Name="LabelOpening"
+                       Content="0.00"
+                       Foreground="#00FF99"
+                       FontSize="16"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"/>
             </StackPanel>
 
         </StackPanel>
@@ -99,58 +112,32 @@
                 CornerRadius="4"
                 Background="#12121F">
 
-            <!-- 🔧 Replace this with your real chart control later -->
-            <Label Content="[ Chart goes here ]"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   Foreground="#555"
-                   FontSize="16"/>
-
+         <wpf:WpfPlot Grid.Row="0" Name="WpfPlot1" />
         </Border>
 
         <!-- MAIN AREA -->
         <Grid Grid.Row="2">
 
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="10"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+            <GroupBox  Margin="4">
 
-            <!-- CALLS -->
-            <GroupBox Header="CALL OPTIONS"
-                  Grid.Column="0"
-                  Margin="4">
-
-                <DataGrid ItemsSource="{Binding CallOptions}"
-                      AutoGenerateColumns="False">
-
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Simbolo" Binding="{Binding Codigo}" Width="120"/>
-                        <DataGridTextColumn Header="Preço" Binding="{Binding PrecoExercicio}" Width="100"/>
-                        <DataGridTextColumn Header="Venc" Binding="{Binding Vencimento}" Width="80"/>
-                        <DataGridTextColumn Header="Estilo" Binding="{Binding Estilo}" Width="100"/>
-                    </DataGrid.Columns>
-
+                <DataGrid x:Name="OptionsGrid"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      HeadersVisibility="Column"
+                      GridLinesVisibility="Horizontal"
+                      RowBackground="White"
+                      AlternatingRowBackground="#F5F5F5"
+                      RowHeight="28"
+                      FontSize="14"
+                      CanUserAddRows="False"
+                      CanUserResizeRows="False"
+                      SelectionMode="Single"
+                      SelectionUnit="FullRow"
+                       HorizontalGridLinesBrush="{Binding GridLineBrush}"
+                       VerticalGridLinesBrush="{Binding GridLineBrush}">
                 </DataGrid>
-            </GroupBox>
 
-            <!-- PUTS -->
-            <GroupBox Header="PUT OPTIONS"
-                  Grid.Column="2"
-                  Margin="4">
 
-                <DataGrid ItemsSource="{Binding PutOptions}"
-                      AutoGenerateColumns="False">
-
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Simbolo" Binding="{Binding Codigo}" Width="120"/>
-                        <DataGridTextColumn Header="Preço" Binding="{Binding PrecoExercicio}" Width="100"/>
-                        <DataGridTextColumn Header="Venc" Binding="{Binding Vencimento}" Width="80"/>
-                        <DataGridTextColumn Header="Estilo" Binding="{Binding Estilo}" Width="100"/>
-                    </DataGrid.Columns>
-
-                </DataGrid>
             </GroupBox>
 
         </Grid>
