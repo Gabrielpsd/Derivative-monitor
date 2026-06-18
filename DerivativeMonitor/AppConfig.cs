@@ -19,6 +19,9 @@
     // ex: "PETR" + "_B_0" = "PETR_B_0" para opções da Apple. O sufixo pode variar dependendo do sistema ou corretora, então é importante configurá-lo corretamente para garantir que as opções sejam identificadas corretamente no banco de dados e no sistema de negociação.
     public string TicketSuffix { get; set; } = "";
 
+    // No Profit o sufixo das opções é diferente do sufixo das ações
+    public string DerivativesSuffix { get; set; } = "";
+
     // intervalo de tempo em milisegundos para atualizar os dados das opções, ex: 60000 para atualizar a cada 60 segundos.
     public int RefreshIntervalMilliseconds { get; set; } = 60000;
 

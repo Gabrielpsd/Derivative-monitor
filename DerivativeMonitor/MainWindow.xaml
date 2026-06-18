@@ -1,4 +1,4 @@
-﻿<Window x:Class="WpfApp1.MainWindow"
+﻿<Window x:Class="DerivativeMonitor.MainWindow"
         WindowState="Maximized"
         WindowStyle="SingleBorderWindow"
         ResizeMode="CanResize"
@@ -6,7 +6,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:WpfApp1"
+        xmlns:local="clr-namespace:DerivativeMonitor"
         xmlns:wpf="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded">
@@ -79,7 +79,7 @@
                         VerticalAlignment="Center"
                         Margin="8 0">
 
-                <Label Content="Fechamento:"
+                <Label Content="Preço Atual:"
                        Foreground="White"
                        FontSize="13"
                        VerticalAlignment="Center"/>
@@ -90,7 +90,7 @@
                        FontSize="16"
                        FontWeight="Bold"
                        VerticalAlignment="Center"/>
-                
+
                 <Label Content="Abertura:"
                        Foreground="White"
                        FontSize="13"
@@ -103,7 +103,20 @@
                        FontWeight="Bold"
                        VerticalAlignment="Center"/>
             </StackPanel>
-
+            <Border x:Name="LoadingOverlay"
+                Grid.Row="0" Grid.RowSpan="3" 
+                Background="#CC1E1E2E"
+                Visibility="Hidden"
+                Panel.ZIndex="100" Width="277">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="340">
+                    <TextBlock x:Name="LoadingStatusText"
+                   Text="Carregando..."
+                   Foreground="White" FontSize="15"
+                   HorizontalAlignment="Center" Margin="0 0 0 10"/>
+                    <ProgressBar x:Name="LoadingProgressBar"
+                     Minimum="0" Maximum="100" Value="0" Height="20"/>
+                </StackPanel>
+            </Border>
         </StackPanel>
         <Border Grid.Row="1"
                 Margin="8 4"
@@ -112,7 +125,7 @@
                 CornerRadius="4"
                 Background="#12121F">
 
-         <wpf:WpfPlot Grid.Row="0" Name="WpfPlot1" />
+            <wpf:WpfPlot Grid.Row="0" Name="WpfPlot1" />
         </Border>
 
         <!-- MAIN AREA -->

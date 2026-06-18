@@ -9,7 +9,6 @@ public static class FieldFormatter
         if (string.IsNullOrWhiteSpace(value))
             return "";
 
-        Logger.Log($"Format: {formatType}");
         formatType ??= "number";
 
         switch (formatType.ToLower())

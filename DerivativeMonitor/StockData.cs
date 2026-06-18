@@ -4,13 +4,13 @@ public class StockData : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private string _lastPrice;
+    private string? _lastPrice;
 
-    private string _openingPrice;
+    private string? _openingPrice;
 
     public string OpeningPrice
     {
-        get => _openingPrice;
+        get => _openingPrice != null ? _openingPrice : "0";
         set
         {
             _openingPrice = value;
@@ -19,7 +19,7 @@ public class StockData : INotifyPropertyChanged
     }
     public string LastPrice
     {
-        get => _lastPrice;
+        get => _lastPrice != null ? _lastPrice : "0";
         set
         {
             _lastPrice = value;

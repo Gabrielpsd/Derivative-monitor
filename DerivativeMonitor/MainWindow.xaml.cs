@@ -1,11 +1,13 @@
-﻿using System.Collections.ObjectModel;
+﻿using ScottPlot.Plottables;
+using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace WpfApp1
+namespace DerivativeMonitor
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -24,9 +26,10 @@ namespace WpfApp1
 
         //I'll only handle and modify the _charLookup
         private Dictionary<decimal, ChartRow> _chartLookup = new();
-
+        private VerticalLine? _priceLine;
         // the _chartRows is the collection that is binded to the chart, so when I update it, the chart will be updated automatically
         private ObservableCollection<ChartRow> _chartRows = new();
+        public record LoadStatus(int Percent, string Message);
 
         public Brush GridLineBrush { get; set; }
         public MainWindow()
@@ -129,45 +132,34 @@ namespace WpfApp1
 
         private async void ConnectDataLoop(object sender, RoutedEventArgs e)
         {
-            if (!loopingIsRunning)
-            {
-                Logger.Log("Starting loops...");
-                if (_rtdClient == null || !_rtdClient.IsRtdConnected)
+
+                LoadButton.IsEnabled = false;
+                LoadingProgressBar.Value = 0;
+                LoadingOverlay.Visibility = Visibility.Visible;
+
+                // Created on the UI thread → every Report(...) runs this lambda back on the UI thread,
+                // even when called from inside Task.Run.
+                var progress = new Progress<LoadStatus>(status =>
                 {
-                    Logger.Log("Loop was called but server is not initialized.");
-                    return;
-                }
+                    LoadingProgressBar.Value = status.Percent;
+                    LoadingStatusText.Text = status.Message;
+                });
 
-                if (options == null || options.CallOptions == null || options.PutOptions == null || (options.CallOptions.Count == 0 && options.PutOptions.Count == 0))
+                try
                 {
-                    Logger.Log("Connect was called, populating options object");
-                    options = await ProgramInterface.PopulatesOptionObject(_appConfig.Ticker, _appConfig);
+                    await RunLoadPipelineAsync(progress);
                 }
-
-                var data = OptionMapper.BuildOptionRows(options, _appConfig);
-                Logger.Log("Building data rows for RTD connection...");
-                Logger.Log("Connecting data to RTD server...");
-                await _rtdClient.ConnectDataToRTd(data, _optionsMonitored, _appConfig, _chartLookup, _chartRows, _stockData);
-                OptionsGrid.ItemsSource = _optionsMonitored;
-                LabelClose.Content = _stockData.LastPrice;
-                LabelOpening.Content = _stockData.OpeningPrice;
-
-                ChartHandler.BuildChart(_chartLookup, _appConfig, WpfPlot1, _stockData);
-
-                _cts = new CancellationTokenSource();
-                loopingIsRunning = true;
-                ConnectDataLoopButtonTextBlock.Foreground = new SolidColorBrush(Colors.White);
-                ConnectDataLoopButton.Background = new SolidColorBrush(Colors.Green);
-                StartLoops();
-            }
-            else
-            {
-                Logger.Log("Stopping loops...");
-                StopLoops();
-                loopingIsRunning = false;
-                ConnectDataLoopButtonTextBlock.Foreground = new SolidColorBrush(Colors.Black);
-                ConnectDataLoopButton.Background = new SolidColorBrush(Colors.Gray);
-            }
+                catch (Exception ex)
+                {
+                    Logger.Log("Load pipeline error: " + ex.Message);
+                    LoadingStatusText.Text = "Erro ao carregar: " + ex.Message;
+                    await Task.Delay(2500);
+                }
+                finally
+                {
+                    LoadingOverlay.Visibility = Visibility.Collapsed;
+                    LoadButton.IsEnabled = true;
+                }
         }
 
         private async void Load_Click(object sender, RoutedEventArgs e)
@@ -192,7 +184,7 @@ namespace WpfApp1
             Logger.Log("Configuration validated successfully. Ticker: " + _appConfig.Ticker);
             Logger.configureLogging(_appConfig.debugOptions, _appConfig.debugSteps);
             Logger.Log($"Configuration loaded: {JsonSerializer.Serialize(_appConfig, new JsonSerializerOptions { WriteIndented = true })}");
-
+            
             TickerInput.Text = _appConfig.Ticker;
 
             //OptionsGrid.ItemsSource = data;
@@ -219,6 +211,53 @@ namespace WpfApp1
             _rtdClient?.StopAsync();
             Logger.Log("RTD server disposed");
             StopLoops();
+        }
+        private async Task RunLoadPipelineAsync(IProgress<LoadStatus> progress)
+        {
+            if (loopingIsRunning) { 
+                Logger.Log("Stopping loops before reloading data...");
+                StopLoops(); 
+                loopingIsRunning = false;
+                ConnectDataLoopButtonTextBlock.Foreground = new SolidColorBrush(Colors.Black);
+                ConnectDataLoopButton.Background = new SolidColorBrush(Colors.Gray);
+            }
+
+            // 1) Ensure the RTD server is up
+            progress.Report(new LoadStatus(5, "Iniciando servidor RTD..."));
+            if (_rtdClient == null) _rtdClient = new RTDClient();
+            if (!_rtdClient.IsRtdConnected) await _rtdClient.InitializeRtdServerAsync();
+            if (!_rtdClient.IsRtdConnected)
+                throw new InvalidOperationException("Não foi possível iniciar o servidor RTD.");
+
+            // 2) Download the option chain (network I/O)
+            progress.Report(new LoadStatus(25, "Baixando cadeia de opções..."));
+            options = await ProgramInterface.PopulatesOptionObject(_appConfig.Ticker, _appConfig);
+
+            // 3) Build grid rows (CPU) on a background thread
+            progress.Report(new LoadStatus(45, "Montando as linhas de opções..."));
+            var rows = await Task.Run(() => OptionMapper.BuildOptionRows(options, _appConfig));
+
+            // 4) Connect topics (heavy COM) on a background thread — this is what used to freeze
+            progress.Report(new LoadStatus(65, "Conectando dados ao RTD..."));
+            _chartLookup.Clear();
+            await Task.Run(() => _rtdClient.ConnectDataToRTd(rows, _appConfig, _chartLookup, _stockData));
+
+            // 5) Fill the UI — we are back on the UI thread after the await, so this is safe
+            progress.Report(new LoadStatus(85, "Preenchendo a grade e o gráfico..."));
+            _optionsMonitored.Clear();
+            foreach (var row in rows) _optionsMonitored.Add(row);
+            _chartRows.Clear();
+            foreach (var chartRow in _chartLookup.Values) _chartRows.Add(chartRow);
+
+            OptionsGrid.ItemsSource = _optionsMonitored;
+            LabelClose.Content = _stockData.LastPrice;
+            LabelOpening.Content = _stockData.OpeningPrice;
+            Logger.Log("Stock Data" + _stockData);
+            ChartHandler.BuildChart(_chartLookup, _appConfig, WpfPlot1, _stockData, _priceLine);
+
+            // 6) Start the live loops
+            progress.Report(new LoadStatus(100, "Iniciando atualizações em tempo real..."));
+
         }
         private async void ServerStart_click(object sender, RoutedEventArgs e)
         {
@@ -279,7 +318,17 @@ namespace WpfApp1
                 try
                 {
                     if (_rtdClient != null && _rtdClient.IsRtdConnected)
+                    { 
                         _rtdClient.UpdateRtdData(_optionsMonitored, _appConfig, _stockData);
+                        Decimal.TryParse(
+                                _stockData.LastPrice,
+                                NumberStyles.Any,
+                                new CultureInfo("pt-BR"),
+                                out decimal lastPriceDecimal);
+                        ChartHandler.UpdatePriceLine(lastPriceDecimal, _chartLookup, _priceLine);
+                        ChartHandler.RefreshChart(WpfPlot1);
+                        LabelClose.Content = _stockData.LastPrice;
+                    }
 
                 }
                 catch (Exception ex)

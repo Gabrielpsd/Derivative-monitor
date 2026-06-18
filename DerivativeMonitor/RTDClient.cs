@@ -57,7 +57,7 @@ public class RTDClient
         });
     }
 
-    public async Task ConnectDataToRTd(List<OptionsMonitored> optionsToConnect, ObservableCollection<OptionsMonitored> optionsBeingMonitored, AppConfig _appConfig, Dictionary<decimal, ChartRow> _chartLookup, ObservableCollection<ChartRow> _chartRows, StockData _stockData)
+    public async Task ConnectDataToRTd(List<OptionsMonitored> optionsToConnect, AppConfig _appConfig, Dictionary<decimal, ChartRow> _chartLookup, StockData _stockData)
     {
         if (_rtdServer == null) return;
 
@@ -74,81 +74,58 @@ public class RTDClient
 
         foreach (var option in optionsToConnect)
         {
-            var chartRow = new ChartRow
+            _chartLookup[option.Strike] = new ChartRow{ Strike = option.Strike };
+
+            if (!string.IsNullOrEmpty(option.CallCodigo))
+                topicId = ConnectSide(option, isCall: true, _appConfig, _chartLookup, topicId);
+
+            if (!string.IsNullOrEmpty(option.PutCodigo))
+                topicId = ConnectSide(option, isCall: false, _appConfig, _chartLookup, topicId);
+
+        }
+    }
+
+    private int ConnectSide(OptionsMonitored option, bool isCall, AppConfig appConfig, Dictionary<decimal, ChartRow> chartLookup, int topicId)
+    {
+
+        string side = isCall ? option.CallCodigo : option.PutCodigo;
+        // these are the parameters that should ploted on chart
+        var parametersToMonitor = isCall ? appConfig.CallParametersToMonitor : appConfig.PutParametersToMonitor;
+        var topics = isCall ? option.CallTopics : option.PutTopics;
+        var parameters = isCall ? option.CallParameters : option.PutParameters;
+
+        parameters.Clear();
+        topics.Clear();
+
+        foreach(var parameter in parametersToMonitor)
+        {
+            Array topic = new object[] { side + appConfig.DerivativesSuffix, parameter.Value };
+            object? raw = _rtdServer!.ConnectData(topicId, topic, true);
+            string formatted = FieldFormatter.Format(raw?.ToString(), appConfig.FieldFormats[parameter.Value]);
+
+            parameters[parameter.Value] = formatted;
+            topics[topicId.ToString()] = parameter.Value;
+
+            if (parameter.Value == appConfig.Chart["Parameter"].ToString())
             {
-                Strike = option.Strike
+                var chartRow = chartLookup[option.Strike];
+                chartRow.Parameter = parameter.Value;
+                if (isCall) chartRow.CallValue = Convert.ToDouble(formatted);
+                else chartRow.PutValue = Convert.ToDouble(formatted);
+            }
+
+            _topicBindings[topicId] = new TopicBinding
+            {
+                Option = option,
+                IsCall = isCall,
+                Parameter = parameter.Value
             };
 
-            _chartRows.Add(chartRow);
-            _chartLookup[option.Strike] = chartRow;
-
-            Logger.Log($"Processing option: {option}");
-            // Connect Call option
-            if (!string.IsNullOrEmpty(option.CallCodigo))
-            {
-                option.CallParameters = new Dictionary<string, string> { };
-                option.CallTopics = new Dictionary<string, string> { };
-                foreach (var parameter in _appConfig.CallParametersToMonitor)
-                {
-                    object? results;
-                    Array topic = new object[] { option.CallCodigo + _appConfig.TicketSuffix, parameter.Value };
-                    results = _rtdServer.ConnectData(topicId, topic, true);
-                    // parameter is a key value pair in format "ParameterName": "FormatType",
-                    // like "Abertura":"ABE", and parameter.Value is ABE 
-                    option.CallParameters[parameter.Value] = FieldFormatter.Format(results.ToString(), _appConfig.FieldFormats[parameter.Value]);
-                    Logger.Log($"Updated option CallParameters with topic ID: {topicId}, value: {option.CallParameters[parameter.Value]}");
-                    option.CallTopics[topicId.ToString()] = parameter.Value;
-
-                    if (parameter.Value == _appConfig.Chart["Parameter"].ToString())
-                    {
-                        _chartLookup[option.Strike].Parameter = parameter.Value;
-                        _chartLookup[option.Strike].CallValue = Convert.ToDouble(option.CallParameters[parameter.Value]);
-                    }
-
-                    // Store the binding of topic ID to option and parameter for later updates
-                    // When the update is called the return value is only the topic ID and the new value,
-                    // so we need to know which option and parameter to update
-                    _topicBindings[topicId] = new TopicBinding
-                    {
-                        Option = option,
-                        IsCall = true,
-                        Parameter = parameter.Value
-                    };
-
-                    topicId++;
-                }
-            }
-            // Connect Put option
-            if (!string.IsNullOrEmpty(option.PutCodigo))
-            {
-                option.PutParameters = new Dictionary<string, string> { };
-                option.PutTopics = new Dictionary<string, string> { };
-                foreach (var parameter in _appConfig.PutParametersToMonitor)
-                {
-                    object? results;
-                    Array topic = new object[] { option.PutCodigo + _appConfig.TicketSuffix, parameter.Value };
-                    results = _rtdServer.ConnectData(topicId, topic, true);
-                    option.PutParameters[parameter.Value] = FieldFormatter.Format(results.ToString(), _appConfig.FieldFormats[parameter.Value]);
-                    Logger.Log($"Updated option PutParameters with topic ID: {topicId}, value: {option.PutParameters[parameter.Value]}");
-                    option.PutTopics[topicId.ToString()] = parameter.Value;
-
-                    if (parameter.Value == _appConfig.Chart["Parameter"].ToString())
-                    {
-                        _chartLookup[option.Strike].Parameter = parameter.Value;
-                        _chartLookup[option.Strike].PutValue = Convert.ToDouble(option.PutParameters[parameter.Value]);
-                    }
-
-                    _topicBindings[topicId] = new TopicBinding
-                    {
-                        Option = option,
-                        IsCall = false,
-                        Parameter = parameter.Value
-                    };
-                    topicId++;
-                }
-            }
-            optionsBeingMonitored.Add(option);
+            topicId++;
         }
+
+        // Implementation for connecting side
+        return topicId;
     }
 
     public void UpdateRtdData(ObservableCollection<OptionsMonitored> optionsBeingMonitored, AppConfig _appConfig, StockData _stockData)
