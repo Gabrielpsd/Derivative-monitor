@@ -1,0 +1,196 @@
+﻿<Window x:Class="DerivativeMonitor.MainWindow"
+        WindowState="Maximized"
+        WindowStyle="SingleBorderWindow"
+        ResizeMode="CanResize"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DerivativeMonitor"
+        xmlns:wpf="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="1486" Loaded="Window_Loaded">
+    <Grid>
+
+        <!-- ROWS -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Top summary -->
+            <RowDefinition Height="200"/>
+            <RowDefinition Height="*"/>
+            <!-- Tables -->
+        </Grid.RowDefinitions>
+
+        <!-- TOP BAR -->
+        <StackPanel
+            Grid.Row="0"
+            Orientation="Horizontal"
+            Background="#1E1E2E"
+            Margin="0">
+
+            <!-- Ticker input + Load button grouped together -->
+            <StackPanel Orientation="Horizontal" Margin="8 4">
+                <TextBox x:Name="TickerInput"
+                         Width="80"
+                         Margin="0 0 6 0"
+                         VerticalContentAlignment="Center"
+                         IsEnabled="False"/>
+
+                <Button x:Name="LoadButton"
+                        Content="Load"
+                        Click="Load_Click"
+                        Width="30"
+                        Height="25"
+                        Margin="2"/>
+
+                <Button x:Name="ServerStart"
+                        Click="ServerStart_click"
+                        Width="40"
+                        Height="25" ToolTip="Iniciar Servidor RTD"
+                    >
+
+                    <TextBlock x:Name="ConnectServerButtonTextBlock"
+                                Text="&#xE7E8;" 
+                                FontFamily="Segoe MDL2 Assets"
+                                FontSize="16"
+                                Foreground="Black"
+                               />
+                </Button>
+                <Button x:Name="ConnectDataLoopButton"
+                        Click="ConnectDataLoop"
+                        Width="30"
+                        Height="25" ToolTip="Conectar Dados" 
+                        
+                        >
+                    <TextBlock x:Name="ConnectDataLoopButtonTextBlock"
+                        Text="&#xE8CE;" 
+                        FontFamily="Segoe MDL2 Assets"
+                        FontSize="16"
+                        Foreground="Black"/>
+                </Button>
+            </StackPanel>
+
+            <!-- Divider -->
+            <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"
+                       Margin="4 4"/>
+
+            <!-- Price info grouped together -->
+            <StackPanel Orientation="Horizontal"
+                        VerticalAlignment="Center"
+                        Margin="8 0" Width="985">
+
+                <Label Content="Preço Atual:"
+                       Foreground="White"
+                       FontSize="13"
+                       VerticalAlignment="Center"/>
+
+                <Label x:Name="LabelClose"
+                       Content="0.00"
+                       Foreground="#00FF99"
+                       FontSize="16"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"/>
+
+                <Label Content="Abertura:"
+                       Foreground="White"
+                       FontSize="13"
+                       VerticalAlignment="Center"/>
+
+                <Label x:Name="LabelOpening"
+                       Content="0.00"
+                       Foreground="Red"
+                       FontSize="16"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"/>
+                <!-- Divider -->
+                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"
+                        Margin="4 4"/>
+                
+                <Label Content="Strike selecionado:"
+                   Foreground="White"
+                   FontSize="13"
+                   VerticalAlignment="Center"/>
+
+                <Label x:Name="StrikeSelected"
+                   Content="0.00"
+                   Foreground="Red"
+                   FontSize="16"
+                   FontWeight="Bold"
+                   VerticalAlignment="Center"/>
+
+                <Label Content="Put Value:"
+                       Foreground="White"
+                       FontSize="13"
+                       VerticalAlignment="Center"/>
+
+                <Label x:Name="PutValue"
+                       Content="0.00"
+                       Foreground="Red"
+                       FontSize="13"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"/>
+
+                <Label Content="Call Value:"
+                   Foreground="White"
+                   FontSize="13"
+                   VerticalAlignment="Center"/>
+
+                <Label x:Name="CallValue"
+                   Content="0.00"
+                   Foreground="Red"
+                   FontSize="13"
+                   FontWeight="Bold"
+                   VerticalAlignment="Center" Width="77"/>
+
+            </StackPanel>
+            <Border x:Name="LoadingOverlay"
+                Background="#CC1E1E2E"
+                Visibility="Hidden"
+                Panel.ZIndex="100" Width="277">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="276">
+                    <TextBlock x:Name="LoadingStatusText"
+                   Text="Carregando..."
+                   Foreground="White" FontSize="13"
+                   HorizontalAlignment="Center"/>
+                    <ProgressBar x:Name="LoadingProgressBar" Minimum="0" Maximum="100" Value="0" Height="11"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+        <Border Grid.Row="1"
+                Margin="8 4"
+                BorderBrush="#444"
+                BorderThickness="1"
+                CornerRadius="4"
+                Background="#12121F">
+
+            <wpf:WpfPlot Grid.Row="0" Name="WpfPlot1" />
+        </Border>
+
+        <!-- MAIN AREA -->
+        <Grid Grid.Row="2">
+
+            <GroupBox  Margin="4">
+
+                <DataGrid x:Name="OptionsGrid"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      HeadersVisibility="Column"
+                      GridLinesVisibility="Horizontal"
+                      RowBackground="White"
+                      AlternatingRowBackground="#F5F5F5"
+                      RowHeight="28"
+                      FontSize="14"
+                      CanUserAddRows="False"
+                      CanUserResizeRows="False"
+                      SelectionMode="Single"
+                      SelectionUnit="FullRow"
+                       HorizontalGridLinesBrush="{Binding GridLineBrush}"
+                       VerticalGridLinesBrush="{Binding GridLineBrush}">
+                </DataGrid>
+
+
+            </GroupBox>
+
+        </Grid>
+    </Grid>
+</Window>

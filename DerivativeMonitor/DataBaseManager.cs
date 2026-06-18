@@ -31,7 +31,7 @@ public static class DataBaseManager
         command.ExecuteNonQuery();
     }
 
-    public static void SaveOptions(string source,string ticket, Options options)
+    public static void SaveOptions(string source, string ticket, Options options)
     {
 
         using var connection = new SqliteConnection($"Data Source={source}");

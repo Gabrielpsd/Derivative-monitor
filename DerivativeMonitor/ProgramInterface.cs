@@ -1,10 +1,7 @@
-﻿using System;
-using System.Timers;
-
-public static class ProgramInterface
+﻿public static class ProgramInterface
 {
-	public static string readTicker()
-	{
+    public static string readTicker()
+    {
         string? ticker;
 
         do
@@ -24,7 +21,7 @@ public static class ProgramInterface
 
         return ticker;
     }
-	public static async Task<Options> PopulatesOptionObject(string ticker, AppConfig config)
+    public static async Task<Options> PopulatesOptionObject(string ticker, AppConfig config)
     {
         var URLRequest = $"{config.BaseUrl}{ticker}";
         // requesting data form web page
@@ -32,7 +29,8 @@ public static class ProgramInterface
         var data = await Web_Scrapper.GetData(URLRequest);
         Logger.Log("Data received from URL: " + data.Substring(0, Math.Min(100, data.Length)) + "..."); // Log the first 100 characters of the data
         var options = OptionMapper.extractDataFromHTML(data, config.PutOptionTableOnWeb, config.CallOptionTableOnWeb);
-                Logger.Log("Options data extracted successfully for ticker: " + ticker);
+        Logger.Log("Options data extracted successfully for ticker: " + ticker);
+
         return options;
     }
 
