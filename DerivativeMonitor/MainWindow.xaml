@@ -9,7 +9,7 @@
         xmlns:local="clr-namespace:DerivativeMonitor"
         xmlns:wpf="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded">
+        Title="MainWindow" Height="450" Width="1486" Loaded="Window_Loaded">
     <Grid>
 
         <!-- ROWS -->
@@ -77,7 +77,7 @@
             <!-- Price info grouped together -->
             <StackPanel Orientation="Horizontal"
                         VerticalAlignment="Center"
-                        Margin="8 0">
+                        Margin="8 0" Width="985">
 
                 <Label Content="Preço Atual:"
                        Foreground="White"
@@ -98,23 +98,61 @@
 
                 <Label x:Name="LabelOpening"
                        Content="0.00"
-                       Foreground="#00FF99"
+                       Foreground="Red"
                        FontSize="16"
                        FontWeight="Bold"
                        VerticalAlignment="Center"/>
+                <!-- Divider -->
+                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"
+                        Margin="4 4"/>
+                
+                <Label Content="Strike selecionado:"
+                   Foreground="White"
+                   FontSize="13"
+                   VerticalAlignment="Center"/>
+
+                <Label x:Name="StrikeSelected"
+                   Content="0.00"
+                   Foreground="Red"
+                   FontSize="16"
+                   FontWeight="Bold"
+                   VerticalAlignment="Center"/>
+
+                <Label Content="Put Value:"
+                       Foreground="White"
+                       FontSize="13"
+                       VerticalAlignment="Center"/>
+
+                <Label x:Name="PutValue"
+                       Content="0.00"
+                       Foreground="Red"
+                       FontSize="13"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"/>
+
+                <Label Content="Call Value:"
+                   Foreground="White"
+                   FontSize="13"
+                   VerticalAlignment="Center"/>
+
+                <Label x:Name="CallValue"
+                   Content="0.00"
+                   Foreground="Red"
+                   FontSize="13"
+                   FontWeight="Bold"
+                   VerticalAlignment="Center" Width="77"/>
+
             </StackPanel>
             <Border x:Name="LoadingOverlay"
-                Grid.Row="0" Grid.RowSpan="3" 
                 Background="#CC1E1E2E"
                 Visibility="Hidden"
                 Panel.ZIndex="100" Width="277">
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="340">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="276">
                     <TextBlock x:Name="LoadingStatusText"
                    Text="Carregando..."
-                   Foreground="White" FontSize="15"
-                   HorizontalAlignment="Center" Margin="0 0 0 10"/>
-                    <ProgressBar x:Name="LoadingProgressBar"
-                     Minimum="0" Maximum="100" Value="0" Height="20"/>
+                   Foreground="White" FontSize="13"
+                   HorizontalAlignment="Center"/>
+                    <ProgressBar x:Name="LoadingProgressBar" Minimum="0" Maximum="100" Value="0" Height="11"/>
                 </StackPanel>
             </Border>
         </StackPanel>

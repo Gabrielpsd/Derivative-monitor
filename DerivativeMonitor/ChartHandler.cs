@@ -30,6 +30,7 @@ public static class ChartHandler
                 .Select(x => x.Value)
                 .ToList();
         Logger.Log("orded rows:" + orderedRows.Count);
+
         for (int i = 0; i < orderedRows.Count -1; i++)
         {
 
@@ -125,4 +126,6 @@ public static class ChartHandler
         priceLine.X = position;
         priceLine.Text = $"{price}";
     }
+
+
 }

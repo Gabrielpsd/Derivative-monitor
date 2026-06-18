@@ -1,4 +1,5 @@
 ﻿using ScottPlot.Plottables;
+using ScottPlot.WPF;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text.Json;
@@ -31,10 +32,15 @@ namespace DerivativeMonitor
         private ObservableCollection<ChartRow> _chartRows = new();
         public record LoadStatus(int Percent, string Message);
 
-        public Brush GridLineBrush { get; set; }
+        // this crosshair is used to show the values of the bars when the user hover them, it is created once and updated with the new values when the user hover another bar, this way I can avoid creating and destroying multiple crosshairs that can cause performance issues
+        private ScottPlot.Plottables.Crosshair _hoverCrosshair;
+        private List<ChartRow> _orderedChartRows = new(); // bars in the same order as the chart
+        private int _lastHoverIndex = -1;                 // for the performance guard below
+
         public MainWindow()
         {
             InitializeComponent();
+            
         }
 
         private void BuildDynamicColumns()
@@ -190,9 +196,8 @@ namespace DerivativeMonitor
             //OptionsGrid.ItemsSource = data;
 
             Logger.Log("Building dynamic columns for DataGrid based on monitored parameters...");
+            setColours(_appConfig);
             BuildDynamicColumns();
-
-            GridLineBrush = ColorHelper.FromHex(_appConfig.Colors.GridLine);
 
             Logger.Log("Options data populated successfully for ticker: " + _appConfig.Ticker);
             DataBaseManager.Initialize(_appConfig.DatabasePath);
@@ -254,7 +259,13 @@ namespace DerivativeMonitor
             LabelOpening.Content = _stockData.OpeningPrice;
             Logger.Log("Stock Data" + _stockData);
             ChartHandler.BuildChart(_chartLookup, _appConfig, WpfPlot1, _stockData, _priceLine);
+            _orderedChartRows = _chartLookup.OrderBy(x => x.Key).Select(x => x.Value).ToList(); ;
 
+            _hoverCrosshair = WpfPlot1.Plot.Add.Crosshair(0, 0);
+            _hoverCrosshair.IsVisible = false;          // hidden until the mouse is over a bar
+            _hoverCrosshair.MarkerShape = ScottPlot.MarkerShape.OpenCircle;
+            _hoverCrosshair.MarkerSize = 15;
+            WpfPlot1.MouseMove += WpfPlot1_MouseMove;
             // 6) Start the live loops
             progress.Report(new LoadStatus(100, "Iniciando atualizações em tempo real..."));
 
@@ -286,6 +297,15 @@ namespace DerivativeMonitor
             }
 
 
+        }
+
+        private void setColours(AppConfig _appConfig)
+        {
+            LabelClose.Foreground = ColorHelper.FromHex(_appConfig.Colors.ClosePrice);
+            LabelOpening.Foreground = ColorHelper.FromHex(_appConfig.Colors.OpenPrice);
+            StrikeSelected.Foreground = ColorHelper.FromHex(_appConfig.Colors.strikeFontColorBar);
+            PutValue.Foreground = ColorHelper.FromHex(_appConfig.Colors.PutFontColorBar);
+            CallValue.Foreground = ColorHelper.FromHex(_appConfig.Colors.CallFontColorBar);
         }
 
         private async Task ShowLoadingAnimation(Button button, int durationMs = 3000)
@@ -376,6 +396,53 @@ namespace DerivativeMonitor
             await loadDataAsync();
             DataContext = this;
         }
+
+        private void WpfPlot1_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            Logger.Log("Mouse moved over chart at position: " + e.GetPosition(WpfPlot1));
+            Logger.Log("Current hover index: " + _lastHoverIndex);
+            Logger.Log("Total chart rows: " + _orderedChartRows.Count);
+            if (_orderedChartRows.Count == 0) return;
+
+            // (a) WPF mouse position -> ScottPlot pixel. DisplayScale is the WPF-specific bit.
+            System.Windows.Point p = e.GetPosition(WpfPlot1);
+            ScottPlot.Pixel mousePixel = new(p.X * WpfPlot1.DisplayScale, p.Y * WpfPlot1.DisplayScale);
+
+            // (b) pixel -> chart coordinates
+            ScottPlot.Coordinates mouse = WpfPlot1.Plot.GetCoordinates(mousePixel);
+
+            // (c) bars sit at integer X (0,1,2,...), so the nearest bar is the rounded X
+            int index = (int)System.Math.Round(mouse.X);
+
+            // (d) mouse is off any bar -> hide and bail
+            if (index < 0 || index >= _orderedChartRows.Count)
+            {
+                if (_hoverCrosshair.IsVisible)
+                {
+                    _hoverCrosshair.IsVisible = false;
+                    StrikeSelected.Content = "";
+                    PutValue.Content = "";
+                    CallValue.Content = "";
+                    WpfPlot1.Refresh();
+                    _lastHoverIndex = -1;
+                }
+                return;
+            }
+
+            // (e) PERFORMANCE GUARD: MouseMove fires constantly. Only redraw when the
+            //     bar under the cursor actually changes, not on every pixel of movement.
+            if (index == _lastHoverIndex) return;
+            _lastHoverIndex = index;
+
+            ChartRow row = _orderedChartRows[index];
+            _hoverCrosshair.IsVisible = true;
+            _hoverCrosshair.Position = new ScottPlot.Coordinates(index, mouse.Y);
+            StrikeSelected.Content = $"R$ {row.Strike}";
+            PutValue.Content = $"{row.PutValue:0.##}";
+            CallValue.Content = $"{row.CallValue:0.##}";
+            WpfPlot1.Refresh();
+        }
+
     }
 
 
