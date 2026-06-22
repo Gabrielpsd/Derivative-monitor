@@ -45,7 +45,7 @@ public class OptionsMonitored : INotifyPropertyChanged
 
     public bool IsAlert { get; set; } = false;
 
-    public Brush AlertBrush { get; set; } = Brushes.Transparent;
+    public System.Windows.Media.Brush AlertBrush { get; set; } = System.Windows.Media.Brushes.Transparent;
 
     public void UpdateCallParameter(
     string key,
@@ -65,7 +65,7 @@ public class OptionsMonitored : INotifyPropertyChanged
         OnPropertyChanged(nameof(PutParameters));
     }
 
-    public void UpdateAlertStatus(bool isAlert, Brush alertBrush)
+    public void UpdateAlertStatus(bool isAlert, System.Windows.Media.Brush alertBrush)
     {
         IsAlert = isAlert;
         AlertBrush = alertBrush;

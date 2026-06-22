@@ -141,7 +141,7 @@ public class RTDClient
         if (topicsToRefresh > 0)
         {
             Logger.Log($"Received some topic: {result_justCallingRefresh}");
-            if (result_justCallingRefresh.GetLength(1) != null)
+            if (result_justCallingRefresh.GetLength(1) != 0)
             {
                 for (int columnIndex = 0; columnIndex < result_justCallingRefresh.GetLength(1); columnIndex++)
                 {

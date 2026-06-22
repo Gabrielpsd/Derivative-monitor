@@ -92,4 +92,18 @@ public static class ConfigManager
             throw new Exception("PutParametersToMonitor must contain at least one entry in config.json");
         }
     }
+
+    public static void Save(AppConfig config)
+    {
+        var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(FilePath, json);
+    }
+
+    // Deep copy via JSON round-trip: the dialog edits this copy, so the live
+    // _appConfig stays untouched until the user clicks SAVE.
+    public static AppConfig Clone(AppConfig source)
+    {
+        var json = JsonSerializer.Serialize(source);
+        return JsonSerializer.Deserialize<AppConfig>(json) ?? new AppConfig();
+    }
 }

@@ -1,0 +1,430 @@
+﻿<Window x:Class="DerivativeMonitor.ColourSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DerivativeMonitor"
+        mc:Ignorable="d"
+        Title="Configuração de Cores" Height="529" Width="978">
+
+    <Window.Resources>
+        <local:HexToBrushConverter x:Key="HexToBrush"/>
+    </Window.Resources>
+
+    <StackPanel >
+
+        <Border BorderBrush="#444" BorderThickness="1" Padding="10"  Margin="10">
+            <UniformGrid Columns="3" >
+            
+        <Grid Margin="0 2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <local:LabelHelper Grid.Column="0" LabelText="Fonte do Preço Atual"
+                         HelpText="Cor do texto do preço atual na barra do topo."/>
+                <TextBox Grid.Column="1" x:Name="OpenPriceBox"
+                 Text="{Binding Colors.OpenPrice, UpdateSourceTrigger=PropertyChanged}" Height="18" Width="70"/>
+            <Rectangle Grid.Column="2" Width="22" Height="15" Margin="6,0" Stroke="#888"
+                   Fill="{Binding Text, ElementName=OpenPriceBox, Converter={StaticResource HexToBrush}}"/>
+            <Button Grid.Column="3" Content="..." Width="20" Click="PickColor_Click" Height="15" FontSize="8"
+                Tag="{Binding ElementName=OpenPriceBox}"/>
+        </Grid>
+            
+        <Grid Margin="0 2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <local:LabelHelper Grid.Column="0" LabelText="Fundo da coluna Strike"
+                         HelpText="Cor de fundo da coluna STRIKE na grade."/>
+            <TextBox Grid.Column="1" x:Name="StrikeColumnBox"
+                 Text="{Binding Colors.StrikeColumn, UpdateSourceTrigger=PropertyChanged}" Height="18" Width="70"/>
+            <Rectangle Grid.Column="2" Width="22" Height="15" Margin="6,0" Stroke="#888"
+                   Fill="{Binding Text, ElementName=StrikeColumnBox, Converter={StaticResource HexToBrush}}"/>
+            <Button Grid.Column="3" Content="..." Width="20" Click="PickColor_Click" Height="15" FontSize="8"
+                Tag="{Binding ElementName=StrikeColumnBox}"/>
+        </Grid>
+
+        <Grid Margin="0 4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <local:LabelHelper Grid.Column="0" LabelText="Fonte do Strike (grade)"
+                         HelpText="Cor do texto do strike DENTRO da grade de opções."/>
+            <TextBox Grid.Column="1" x:Name="StrikeFontColorBox"
+                 Text="{Binding Colors.StrikeFontColor, UpdateSourceTrigger=PropertyChanged}" Height="18" Width="70"/>
+            <Rectangle Grid.Column="2" Width="22" Height="15" Margin="6,0" Stroke="#888"
+                   Fill="{Binding Text, ElementName=StrikeFontColorBox, Converter={StaticResource HexToBrush}}"/>
+            <Button Grid.Column="3" Content="..." Width="20" Click="PickColor_Click"
+                Tag="{Binding ElementName=StrikeFontColorBox}" Height="15" FontSize="8"/>
+        </Grid>
+
+        <Grid Margin="0 4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <local:LabelHelper Grid.Column="0" LabelText="Preço de fechamento"
+                         HelpText="Cor do texto 'Preço Fechamento' na BARRA do topo."/>
+                <TextBox Grid.Column="1" x:Name="ClosePriceBox"
+                 Text="{Binding Colors.ClosePrice, UpdateSourceTrigger=PropertyChanged}" Height="18" Width="70"/>
+            <Rectangle Grid.Column="2" Width="22" Height="15" Margin="6,0" Stroke="#888"
+                   Fill="{Binding Text, ElementName=ClosePriceBox, Converter={StaticResource HexToBrush}}"/>
+            <Button Grid.Column="3" Content="..." Width="20" Click="PickColor_Click" Height="15" FontSize="8"
+                Tag="{Binding ElementName=ClosePriceBox}" />
+        </Grid>
+        
+        <Grid Margin="0 4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <local:LabelHelper Grid.Column="0" LabelText="Cor do Call (grade)"
+                         HelpText="Cor de fundo da coluna 'Call Codigo' na grade."/>
+                <TextBox Grid.Column="1" x:Name="CallLineBox"
+                 Text="{Binding Colors.CallLine, UpdateSourceTrigger=PropertyChanged}" Height="18" Width="70"/>
+            <Rectangle Grid.Column="2" Width="22" Height="15" Margin="6,0" Stroke="#888"
+                   Fill="{Binding Text, ElementName=CallLineBox, Converter={StaticResource HexToBrush}}"/>
+            <Button Grid.Column="3" Content="..." Width="20" Click="PickColor_Click" Height="15" FontSize="8"
+                Tag="{Binding ElementName=CallLineBox}" />
+        </Grid>
+            
+        <Grid Margin="0 4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <local:LabelHelper Grid.Column="0" LabelText="Fonte do Call (Barra)"
+                         HelpText="Cor da fonte do texto 'Call Código' na grade."/>
+            <TextBox Grid.Column="1" x:Name="CallFontColorBarBox"
+                 Text="{Binding Colors.CallFontColorBar, UpdateSourceTrigger=PropertyChanged}" Height="18" Width="70"/>
+            <Rectangle Grid.Column="2" Width="22" Height="15" Margin="6,0" Stroke="#888"
+                   Fill="{Binding Text, ElementName=CallFontColorBarBox, Converter={StaticResource HexToBrush}}"/>
+            <Button Grid.Column="3" Content="..." Width="20" Click="PickColor_Click" Height="15" FontSize="8"
+                Tag="{Binding ElementName=CallFontColorBarBox}" />
+        </Grid>
+            
+        <Grid Margin="0 4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <local:LabelHelper Grid.Column="0" LabelText="Fonte do Call (Grade)"
+                         HelpText="Cor da fonte do texto 'Call Código' na grade."/>
+                <TextBox Grid.Column="1" x:Name="CallFontColorBox"
+                 Text="{Binding Colors.CallFontColor, UpdateSourceTrigger=PropertyChanged}" Height="18" Width="70"/>
+            <Rectangle Grid.Column="2" Width="22" Height="15" Margin="6,0" Stroke="#888"
+                   Fill="{Binding Text, ElementName=CallFontColorBox, Converter={StaticResource HexToBrush}}"/>
+            <Button Grid.Column="3" Content="..." Width="20" Click="PickColor_Click" Height="15" FontSize="8"
+                Tag="{Binding ElementName=CallFontColorBox}" />
+        </Grid>
+        
+            
+        <Grid Margin="0 4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <local:LabelHelper Grid.Column="0" LabelText="Cor do Put (Grade)"
+                         HelpText="Cor da fonte da coluna 'Put Value' na grade."/>
+            <TextBox Grid.Column="1" x:Name="PutLineBox"
+                 Text="{Binding Colors.PutLine, UpdateSourceTrigger=PropertyChanged}" Height="18" Width="70"/>
+            <Rectangle Grid.Column="2" Width="22" Height="15" Margin="6,0" Stroke="#888"
+                   Fill="{Binding Text, ElementName=PutLineBox, Converter={StaticResource HexToBrush}}"/>
+            <Button Grid.Column="3" Content="..." Width="20" Click="PickColor_Click" Height="15" FontSize="8"
+                Tag="{Binding ElementName=PutLineBox}" />
+        </Grid>
+            
+        <Grid Margin="0 4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <local:LabelHelper Grid.Column="0" LabelText="Fonte do Put (grade)"
+                         HelpText="Cor da fonte da coluna 'Put Value' na grade."/>
+            <TextBox Grid.Column="1" x:Name="PutFontColorBox"
+                 Text="{Binding Colors.PutFontColor, UpdateSourceTrigger=PropertyChanged}" Height="18" Width="70"/>
+            <Rectangle Grid.Column="2" Width="22" Height="15" Margin="6,0" Stroke="#888"
+                   Fill="{Binding Text, ElementName=PutFontColorBox, Converter={StaticResource HexToBrush}}"/>
+            <Button Grid.Column="3" Content="..." Width="20" Click="PickColor_Click" Height="15" FontSize="8"
+                Tag="{Binding ElementName=PutFontColorBox}" />
+        </Grid>
+                
+        <Grid Margin="0 4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <local:LabelHelper Grid.Column="0" LabelText="Fonte do Strike (Barra)"
+                         HelpText="Cor da fonte da coluna 'Strike Selecionado' na barra do topo."/>
+                    <TextBox Grid.Column="1" x:Name="StrikeFontColorBarBox"
+                 Text="{Binding Colors.StrikeFontColorBar, UpdateSourceTrigger=PropertyChanged}" Height="18" Width="70"/>
+            <Rectangle Grid.Column="2" Width="22" Height="15" Margin="6,0" Stroke="#888"
+                   Fill="{Binding Text, ElementName=StrikeFontColorBarBox, Converter={StaticResource HexToBrush}}"/>
+            <Button Grid.Column="3" Content="..." Width="20" Click="PickColor_Click" Height="15" FontSize="8"
+                Tag="{Binding ElementName=StrikeFontColorBarBox}" />
+        </Grid>
+            
+        <Grid Margin="0 4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <local:LabelHelper Grid.Column="0" LabelText="Fonte do Put (Barra)"
+                         HelpText="Cor da fonte da coluna 'Put Value' na barra do topo."/>
+                <TextBox Grid.Column="1" x:Name="PutFontColorBarBox"
+                 Text="{Binding Colors.PutFontColorBar, UpdateSourceTrigger=PropertyChanged}" Height="18" Width="70"/>
+            <Rectangle Grid.Column="2" Width="22" Height="15" Margin="6,0" Stroke="#888"
+                   Fill="{Binding Text, ElementName=PutFontColorBarBox, Converter={StaticResource HexToBrush}}"/>
+            <Button Grid.Column="3" Content="..." Width="20" Click="PickColor_Click" Height="15" FontSize="8"
+                Tag="{Binding ElementName=PutFontColorBarBox}" />
+        </Grid>
+            
+        <Grid Margin="0 4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <local:LabelHelper Grid.Column="0" LabelText="Cor barra call (Gráfico)"
+                         HelpText="Cor da fonte da coluna 'Call Value' no grafico."/>
+                <TextBox Grid.Column="1" x:Name="ChartCallBox"
+                 Text="{Binding Colors.ChartCall, UpdateSourceTrigger=PropertyChanged}" Height="18" Width="70"/>
+            <Rectangle Grid.Column="2" Width="22" Height="15" Margin="6,0" Stroke="#888"
+                   Fill="{Binding Text, ElementName=ChartCallBox, Converter={StaticResource HexToBrush}}"/>
+            <Button Grid.Column="3" Content="..." Width="20" Click="PickColor_Click" Height="15" FontSize="8"
+                Tag="{Binding ElementName=ChartCallBox}" />
+        </Grid>
+            
+        <Grid Margin="0 4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <local:LabelHelper Grid.Column="0" LabelText="Cor barra put (Gráfico)"
+                         HelpText="Cor da fonte da coluna 'Put Value' no grafico."/>
+                <TextBox Grid.Column="1" x:Name="ChartPutBox"
+                 Text="{Binding Colors.ChartPut, UpdateSourceTrigger=PropertyChanged}" Height="18" Width="70"/>
+            <Rectangle Grid.Column="2" Width="22" Height="15" Margin="6,0" Stroke="#888"
+                   Fill="{Binding Text, ElementName=ChartPutBox, Converter={StaticResource HexToBrush}}"/>
+            <Button Grid.Column="3" Content="..." Width="20" Click="PickColor_Click" Height="15" FontSize="8"
+                Tag="{Binding ElementName=ChartPutBox}" />
+        </Grid>
+            
+        <Grid Margin="0 4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <local:LabelHelper Grid.Column="0" LabelText="Linha preço atual (Gráfico)"
+                         HelpText="Cor da fonte da linha que mostra o 'Preço Atual' no grafico."/>
+                <TextBox Grid.Column="1" x:Name="ChartActualPriceBox"
+                 Text="{Binding Colors.ChartActualPrice, UpdateSourceTrigger=PropertyChanged}" Height="18" Width="70"/>
+            <Rectangle Grid.Column="2" Width="22" Height="15" Margin="6,0" Stroke="#888"
+                   Fill="{Binding Text, ElementName=ChartActualPriceBox, Converter={StaticResource HexToBrush}}"/>
+            <Button Grid.Column="3" Content="..." Width="20" Click="PickColor_Click" Height="15" FontSize="8"
+                Tag="{Binding ElementName=ChartActualPriceBox}" />
+        </Grid>
+        
+        
+        </UniformGrid>
+            </Border >
+
+                <!-- ===== LIVE PREVIEW ===== -->
+        <Border BorderBrush="#444" BorderThickness="1" Padding="10"  Margin="10">
+            <StackPanel>
+
+                <TextBlock Text="Pré-visualização (tempo real)" FontWeight="Bold" Margin="0 0 0 8"/>
+
+                <!-- 1) TOP BAR (no buttons, only the editable value fields) -->
+                <Border Background="#1E1E2E" Padding="8 6" CornerRadius="2">
+                    <WrapPanel Orientation="Horizontal">
+
+                        <TextBlock Text="Preço Fechamento:" Foreground="White" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                        <TextBlock Text="12,34" FontWeight="Bold" Margin="0 0 14 0" VerticalAlignment="Center"
+                           Foreground="{Binding Text, ElementName=ClosePriceBox, Converter={StaticResource HexToBrush}}"/>
+
+                        <TextBlock Text="Preço atual:" Foreground="White" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                        <TextBlock Text="12,00" FontWeight="Bold" Margin="0 0 14 0" VerticalAlignment="Center"
+                           Foreground="{Binding Text, ElementName=OpenPriceBox, Converter={StaticResource HexToBrush}}"/>
+
+                        <TextBlock Text="Strike selecionado:" Foreground="White" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                        <TextBlock Text="13,00" FontWeight="Bold" Margin="0 0 14 0" VerticalAlignment="Center"
+                           Foreground="{Binding Text, ElementName=StrikeFontColorBarBox, Converter={StaticResource HexToBrush}}"/>
+
+                        <TextBlock Text="Valor Put:" Foreground="White" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                        <TextBlock Text="0,45" FontWeight="Bold" Margin="0 0 14 0" VerticalAlignment="Center"
+                           Foreground="{Binding Text, ElementName=PutFontColorBarBox, Converter={StaticResource HexToBrush}}"/>
+
+                        <TextBlock Text="Valor Call:" Foreground="White" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                        <TextBlock Text="0,80" FontWeight="Bold" VerticalAlignment="Center"
+                           Foreground="{Binding Text, ElementName=CallFontColorBarBox, Converter={StaticResource HexToBrush}}"/>
+
+                    </WrapPanel>
+                </Border>
+
+                <!-- 2) MINI CHART: two bars + price line, pure WPF -->
+                <Border Background="LightGray" Height="90" Margin="0 8 0 0" Padding="1" CornerRadius="2">
+                    <GroupBox>
+                        <GroupBox.Header>
+                            <local:LabelHelper LabelText="Gráfico"
+                            HelpText="Cores das barras Call/Put e da linha de preço atual."/>
+                        </GroupBox.Header>
+                        <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <!-- bars area -->
+                            <RowDefinition Height="Auto"/>
+                            <!-- labels row -->
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <!-- bars sit on the bottom edge -->
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+                            <Rectangle Width="28" Height="40" Margin="8 0" Grid.Row="0" Grid.Column="0"
+                                   Fill="{Binding Text, ElementName=ChartPutBox, Converter={StaticResource HexToBrush}}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Put"
+                                        HorizontalAlignment="Center" Margin="0 4 0 0" Foreground="{Binding Text, ElementName=ChartPutBox, Converter={StaticResource HexToBrush}}"/>
+
+                            <!-- vertical "current price" line -->
+                            <Rectangle Width="2" HorizontalAlignment="Center" VerticalAlignment="Stretch" Grid.Column="5"
+                               Fill="{Binding Text, ElementName=ChartActualPriceBox, Converter={StaticResource HexToBrush}}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="5" Text="Preço Atual"
+                                HorizontalAlignment="Center" Margin="0 4 0 0" Foreground="{Binding Text, ElementName=ChartActualPriceBox, Converter={StaticResource HexToBrush}}"/>
+                            
+                            <Rectangle Width="28" Height="62" Margin="8 0" Grid.Column="10"
+                                        Fill="{Binding Text, ElementName=ChartCallBox, Converter={StaticResource HexToBrush}}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="10" Text="Call"
+                                        HorizontalAlignment="Center" Margin="0 4 0 0" Foreground="{Binding Text, ElementName=ChartCallBox, Converter={StaticResource HexToBrush}}"/>
+                        </StackPanel>
+                    </Grid>
+                    </GroupBox>
+                </Border>
+                <!-- 3) MINI GRID: Strike | Call Código | Put Código, 2 example rows -->
+                <!-- trick: the Grid's Background is the GridLine color; the 0.5 cell margins reveal it as "grid lines" -->
+                <Border BorderBrush="#444" BorderThickness="1" Margin="0 8 0 0">
+                    <Grid Background="{Binding Text, ElementName=GridLineBox, Converter={StaticResource HexToBrush}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- HEADER ROW -->
+                        <Border Grid.Row="0" Grid.Column="0" Margin="0.5" Padding="4"
+                        Background="{Binding Text, ElementName=CallLineBox, Converter={StaticResource HexToBrush}}">
+                                                    <TextBlock Text="Call Código" FontWeight="Bold" TextAlignment="Center"
+                               Foreground="{Binding Text, ElementName=CallFontColorBox, Converter={StaticResource HexToBrush}}"/>
+                        </Border>
+                        <Border Grid.Row="0" Grid.Column="1" Margin="0.5" Padding="4"
+                        Background="{Binding Text, ElementName=StrikeColumnBox, Converter={StaticResource HexToBrush}}">
+                            <TextBlock Text="STRIKE" FontWeight="Bold" TextAlignment="Center"
+                               Foreground="{Binding Text, ElementName=StrikeColumn, Converter={StaticResource HexToBrush}}"/>
+                        </Border>
+                        
+                        <Border Grid.Row="0" Grid.Column="2" Margin="0.5" Padding="4"
+                        Background="{Binding Text, ElementName=PutLineBox, Converter={StaticResource HexToBrush}}">
+                            <TextBlock Text="Put Código" FontWeight="Bold" TextAlignment="Center"
+                               Foreground="{Binding Text, ElementName=PutFontColorBox, Converter={StaticResource HexToBrush}}"/>
+                        </Border>
+
+                        <!-- DATA ROW 1 -->
+                        <Border Grid.Row="1" Grid.Column="0" Margin="0.5" Padding="4"
+                        Background="{Binding Text, ElementName=CallLineBox, Converter={StaticResource HexToBrush}}">
+                            <TextBlock Text="PETRX120" TextAlignment="Center"
+                               Foreground="{Binding Text, ElementName=CallFontColorBox, Converter={StaticResource HexToBrush}}"/>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="1" Margin="0.5" Padding="4"
+                        Background="{Binding Text, ElementName=StrikeColumnBox, Converter={StaticResource HexToBrush}}">
+                            <TextBlock Text="12,00" TextAlignment="Center"
+                               Foreground="{Binding Text, ElementName=StrikeFontColor, Converter={StaticResource HexToBrush}}"/>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="2" Margin="0.5" Padding="4"
+                        Background="{Binding Text, ElementName=PutLineBox, Converter={StaticResource HexToBrush}}">
+                            <TextBlock Text="PETRP120" TextAlignment="Center"
+                               Foreground="{Binding Text, ElementName=PutFontColorBox, Converter={StaticResource HexToBrush}}"/>
+                        </Border>
+
+                        <!-- DATA ROW 2 -->
+                        <Border Grid.Row="2" Grid.Column="0" Margin="0.5" Padding="4"
+                        Background="{Binding Text, ElementName=CallLineBox, Converter={StaticResource HexToBrush}}">
+                            <TextBlock Text="PETRX130" TextAlignment="Center"
+                               Foreground="{Binding Text, ElementName=CallFontColorBox, Converter={StaticResource HexToBrush}}"/>
+                        </Border>
+                        <Border Grid.Row="2" Grid.Column="1" Margin="0.5" Padding="4"
+                        Background="{Binding Text, ElementName=StrikeColumnBox, Converter={StaticResource HexToBrush}}">
+                            <TextBlock Text="13,00" TextAlignment="Center"
+                               Foreground="{Binding Text, ElementName=StrikeFontColor, Converter={StaticResource HexToBrush}}"/>
+                        </Border>
+                        <Border Grid.Row="2" Grid.Column="2" Margin="0.5" Padding="4"
+                        Background="{Binding Text, ElementName=PutLineBox, Converter={StaticResource HexToBrush}}">
+                            <TextBlock Text="PETRP130" TextAlignment="Center"
+                               Foreground="{Binding Text, ElementName=PutFontColorBox, Converter={StaticResource HexToBrush}}"/>
+                        </Border>
+
+                    </Grid>
+                </Border>
+
+            </StackPanel>
+        </Border>
+        <!-- Buttons pinned to the bottom -->
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+          HorizontalAlignment="Right" Margin="0 10 0 0">
+            <Button Content="Salvar" Width="90" Margin="0 0 8 0" Click="SaveButton_Click"/>
+            <Button Content="Cancelar" Width="90" Margin="0 0 8 0" Click="CancelButton_Click"/>
+        </StackPanel>
+    </StackPanel>
+    
+</Window>
