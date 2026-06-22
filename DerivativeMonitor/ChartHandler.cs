@@ -7,6 +7,7 @@ public static class ChartHandler
 {
     public static void BuildChart(Dictionary<decimal, ChartRow> chartLookup, AppConfig _appConfig, WpfPlot wpfPlot, StockData stockData , VerticalLine priceLine)
     {
+        wpfPlot.Plot.Clear();
         string[] categorieNames = { "Put", "Call" };
         string[] categoryColours = { _appConfig.Colors.ChartPut, _appConfig.Colors.ChartCall };
         double[] putValues = chartLookup.Values.Select(row => row.PutValue).ToArray();
@@ -64,14 +65,14 @@ public static class ChartHandler
                     priceLine = wpfPlot.Plot.Add.VerticalLine(position);
 
                     priceLine.Text = $"{stockData.LastPrice}";
-                    priceLine.Color = new Color(_appConfig.Colors.ChartActualPrice);
+                    priceLine.Color = new   ScottPlot.Color(_appConfig.Colors.ChartActualPrice);
                     priceLine.LabelAlignment = Alignment.MiddleRight;
                 }
             }
         }
        
-        putSeries.Color = new Color(_appConfig.Colors.ChartPut);
-        callSeries.Color = new Color(_appConfig.Colors.ChartCall);
+        putSeries.Color = new ScottPlot.Color(_appConfig.Colors.ChartPut);
+        callSeries.Color = new ScottPlot.Color(_appConfig.Colors.ChartCall);
         wpfPlot.Plot.Axes.Bottom.TickGenerator = tickGen;
 
 
@@ -79,7 +80,6 @@ public static class ChartHandler
         wpfPlot.Plot.Axes.Margins(bottom: 0);
         var limits = wpfPlot.Plot.Axes.GetLimits();
         wpfPlot.Plot.Axes.SetLimitsY(0, top: limits.Top * 1.05);
-        wpfPlot.Plot.Axes.AutoScale();
         RefreshChart(wpfPlot);
     }
     public static void RefreshChart(WpfPlot wpfPlot)

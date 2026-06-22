@@ -7,13 +7,14 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace DerivativeMonitor
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : System.Windows.Window
     {
         private Options options = new Options();
         private CancellationTokenSource _cts = new();
@@ -43,6 +44,12 @@ namespace DerivativeMonitor
             
         }
 
+        private void ApplySettings()
+        {
+            TickerInput.Text = _appConfig.Ticker;
+            BuildDynamicColumns();   // columns depend on CallParametersToMonitor + colors
+        }
+
         private void BuildDynamicColumns()
         {
             Logger.Log("Building dynamic columns for DataGrid based on monitored parameters...");
@@ -57,7 +64,6 @@ namespace DerivativeMonitor
             var callBrush = ColorHelper.FromHex(_appConfig.Colors.CallLine);
             var putBrush = ColorHelper.FromHex(_appConfig.Colors.PutLine);
             var strikeBrush = ColorHelper.FromHex(_appConfig.Colors.StrikeColumn);
-            var alertBrush = ColorHelper.FromHex(_appConfig.Colors.Alert);
 
             var callStyle = new Style(typeof(TextBlock));
 
@@ -72,9 +78,10 @@ namespace DerivativeMonitor
                 OptionsGrid.Columns.Add(new DataGridTextColumn
                 {
                     Header = param.Key,
-                    Binding = new Binding($"CallParameters[{param.Value}]"),
+                    Binding = new System.Windows.Data.Binding($"CallParameters[{param.Value}]"),
                     Width = new DataGridLength(1, DataGridLengthUnitType.Star),
-                    CellStyle = CreateCellStyleHelper.CreateCellStyle(callBrush, alertBrush)
+                    CellStyle = CreateCellStyleHelper.CreateCellStyle(callBrush),
+                    Foreground = ColorHelper.FromHex(_appConfig.Colors.CallFontColor)
                 });
             }
 
@@ -82,23 +89,25 @@ namespace DerivativeMonitor
             OptionsGrid.Columns.Add(new DataGridTextColumn
             {
                 Header = "Call Código",
-                Binding = new Binding("CallCodigo"),
+                Binding = new System.Windows.Data.Binding("CallCodigo"),
                 Width = new DataGridLength(1, DataGridLengthUnitType.Star),
-                CellStyle = CreateCellStyleHelper.CreateCellStyle(callBrush, alertBrush)
+                CellStyle = CreateCellStyleHelper.CreateCellStyle(callBrush),
+                Foreground = ColorHelper.FromHex(_appConfig.Colors.CallFontColor)
             });
 
             Logger.Log("Adding STRIKE column...");
-            var strikeStyle = new Style(typeof(TextBlock));
-            strikeStyle.Setters.Add(new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Center));
-            strikeStyle.Setters.Add(new Setter(TextBlock.FontWeightProperty, FontWeights.Bold));
-            strikeStyle.Setters.Add(new Setter(TextBlock.BackgroundProperty, strikeBrush));
+            var strikeStyle = new Style(typeof(System.Windows.Controls.TextBlock));
+            strikeStyle.Setters.Add(new Setter(System.Windows.Controls.TextBlock.TextAlignmentProperty, System.Windows.TextAlignment.Center));
+            strikeStyle.Setters.Add(new Setter(System.Windows.Controls.TextBlock.FontWeightProperty, System.Windows.FontWeights.Bold));
+            strikeStyle.Setters.Add(new Setter(System.Windows.Controls.TextBlock.BackgroundProperty, strikeBrush));
 
             OptionsGrid.Columns.Add(new DataGridTextColumn
             {
                 Header = "STRIKE",
-                Binding = new Binding("Strike"),
+                Binding = new System.Windows.Data.Binding("Strike"),
                 Width = new DataGridLength(1.2, DataGridLengthUnitType.Star),
-                ElementStyle = strikeStyle
+                ElementStyle = strikeStyle,
+                Foreground = ColorHelper.FromHex(_appConfig.Colors.StrikeFontColor)
             });
 
 
@@ -106,17 +115,18 @@ namespace DerivativeMonitor
             // PUT SIDE
             // ------------------------
             Logger.Log("Adding PUT side columns...");
-            var putStyle = new Style(typeof(TextBlock));
+            var putStyle = new Style(typeof(System.Windows.Controls.TextBlock));
             //putStyle.Setters.Add(new Setter(TextBlock.BackgroundProperty, putBrush));
-            putStyle.Setters.Add(new Setter(TextBlock.ForegroundProperty, ColorHelper.FromHex(_appConfig.Colors.PutFontColor)));
-            putStyle.Setters.Add(new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Center));
+            putStyle.Setters.Add(new Setter(System.Windows.Controls.TextBlock.ForegroundProperty, ColorHelper.FromHex(_appConfig.Colors.PutFontColor)));
+            putStyle.Setters.Add(new Setter(System.Windows.Controls.TextBlock.TextAlignmentProperty, System.Windows.TextAlignment.Center));
 
             OptionsGrid.Columns.Add(new DataGridTextColumn
             {
                 Header = "Put Código",
-                Binding = new Binding("PutCodigo"),
+                Binding = new System.Windows.Data.Binding("PutCodigo"),
                 Width = new DataGridLength(1, DataGridLengthUnitType.Star),
-                CellStyle = CreateCellStyleHelper.CreateCellStyle(putBrush, alertBrush)
+                CellStyle = CreateCellStyleHelper.CreateCellStyle(putBrush),
+                Foreground = ColorHelper.FromHex(_appConfig.Colors.PutFontColor)
             });
 
             Logger.Log("Adding PUT parameter columns...");
@@ -126,9 +136,10 @@ namespace DerivativeMonitor
                 OptionsGrid.Columns.Add(new DataGridTextColumn
                 {
                     Header = param.Key,
-                    Binding = new Binding($"PutParameters[{param.Value}]"),
+                    Binding = new System.Windows.Data.Binding($"PutParameters[{param.Value}]"),
                     Width = new DataGridLength(1, DataGridLengthUnitType.Star),
-                    CellStyle = CreateCellStyleHelper.CreateCellStyle(putBrush, alertBrush)
+                    CellStyle = CreateCellStyleHelper.CreateCellStyle(putBrush),
+                    Foreground = ColorHelper.FromHex(_appConfig.Colors.PutFontColor)
                 });
             }
 
@@ -139,7 +150,6 @@ namespace DerivativeMonitor
         private async void ConnectDataLoop(object sender, RoutedEventArgs e)
         {
 
-                LoadButton.IsEnabled = false;
                 LoadingProgressBar.Value = 0;
                 LoadingOverlay.Visibility = Visibility.Visible;
 
@@ -164,18 +174,23 @@ namespace DerivativeMonitor
                 finally
                 {
                     LoadingOverlay.Visibility = Visibility.Collapsed;
-                    LoadButton.IsEnabled = true;
                 }
         }
-
-        private async void Load_Click(object sender, RoutedEventArgs e)
+        private async void ConfigureColoursButton(object sender, RoutedEventArgs e)
         {
-            // temporary empty handler
-            LoadButton.IsEnabled = false; // prevent spam clicks
 
-            await ShowLoadingAnimation(LoadButton);
+            AppConfig draft = ConfigManager.Clone(_appConfig);
+            var dialog = new ColourSettingsWindow(draft) { Owner = this };
 
-            LoadButton.IsEnabled = true;
+            bool? result = dialog.ShowDialog();
+
+            if (result == true)
+            {
+                ConfigManager.Save(draft);
+                _appConfig = draft;
+                ApplySettings();
+                setColours(_appConfig);
+            }
         }
 
         private async Task loadDataAsync()
@@ -221,10 +236,16 @@ namespace DerivativeMonitor
         {
             if (loopingIsRunning) { 
                 Logger.Log("Stopping loops before reloading data...");
-                StopLoops(); 
+                progress.Report(new LoadStatus(25, "Parando loops..."));
+                StopLoops();
+                ConnectionStatusIndicator.Fill = new SolidColorBrush(Colors.Red);
+                Status.Text = "RTD Desconectado";
+                Status.Foreground = new SolidColorBrush(Colors.Red);
                 loopingIsRunning = false;
                 ConnectDataLoopButtonTextBlock.Foreground = new SolidColorBrush(Colors.Black);
                 ConnectDataLoopButton.Background = new SolidColorBrush(Colors.Gray);
+                progress.Report(new LoadStatus(100, "Parada Excutada"));
+                return;
             }
 
             // 1) Ensure the RTD server is up
@@ -267,8 +288,13 @@ namespace DerivativeMonitor
             _hoverCrosshair.MarkerSize = 15;
             WpfPlot1.MouseMove += WpfPlot1_MouseMove;
             // 6) Start the live loops
-            progress.Report(new LoadStatus(100, "Iniciando atualizações em tempo real..."));
+            ConnectionStatusIndicator.Fill = new SolidColorBrush(Colors.Green);
+            Status.Text = "RTD Conectado";
+            Status.Foreground = new SolidColorBrush(Colors.Green);
 
+            progress.Report(new LoadStatus(90, "Iniciando atualizações em tempo real..."));
+            StartLoops();
+            progress.Report(new LoadStatus(100, "Servidor conectado"));
         }
         private async void ServerStart_click(object sender, RoutedEventArgs e)
         {
@@ -303,25 +329,24 @@ namespace DerivativeMonitor
         {
             LabelClose.Foreground = ColorHelper.FromHex(_appConfig.Colors.ClosePrice);
             LabelOpening.Foreground = ColorHelper.FromHex(_appConfig.Colors.OpenPrice);
-            StrikeSelected.Foreground = ColorHelper.FromHex(_appConfig.Colors.strikeFontColorBar);
+            StrikeSelected.Foreground = ColorHelper.FromHex(_appConfig.Colors.StrikeFontColorBar);
             PutValue.Foreground = ColorHelper.FromHex(_appConfig.Colors.PutFontColorBar);
             CallValue.Foreground = ColorHelper.FromHex(_appConfig.Colors.CallFontColorBar);
         }
 
-        private async Task ShowLoadingAnimation(Button button, int durationMs = 3000)
+        private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
-            string baseText = "Loading";
-            int steps = durationMs / 500; // update every 500ms
+            AppConfig draft = ConfigManager.Clone(_appConfig);
+            var dialog = new SettingsWindow(draft) { Owner = this };
 
-            for (int i = 0; i < steps; i++)
+            bool? result = dialog.ShowDialog();
+
+            if (result == true)
             {
-                int dots = (i % 3) + 1;
-                button.Content = baseText + new string('.', dots);
-
-                await Task.Delay(500);
+                ConfigManager.Save(draft);
+                _appConfig = draft;
+                ApplySettings();
             }
-
-            button.Content = "Load";
         }
 
         private async void StartLoops()
@@ -329,6 +354,7 @@ namespace DerivativeMonitor
 
             _ = StartRtdLoop();
             _ = StartScraperLoop();
+            loopingIsRunning = true;
         }
 
         private async Task StartRtdLoop()

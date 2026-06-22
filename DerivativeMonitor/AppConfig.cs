@@ -51,9 +51,8 @@ public class UiColors
     public string ClosePrice { get; set; } = "#F44336";     // Red
     public string StrikeColumn { get; set; } = "#D3D3D3"; // LightGray
 
-    public string strikeFontColor { get; set; } = "#000000"; // Black
-    public string strikeFontColorBar { get; set; } = "#000000"; // Black
-    public string Alert { get; set; } = "#FF6B6B";        // Red-ish
+    public string StrikeFontColor { get; set; } = "#000000"; // Black
+    public string StrikeFontColorBar { get; set; } = "#000000"; // Black
     public string CallLine { get; set; } = "#E0E0E0";     // Light border
 
     public string CallFontColor { get; set; } = "#000000"; // Black

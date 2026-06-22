@@ -40,7 +40,7 @@ public static class Web_Scrapper
     }
     public static List<List<string>> ExtractTableById(string html, string tableId)
     {
-        var doc = new HtmlDocument();
+        var doc = new HtmlAgilityPack.HtmlDocument();
         doc.LoadHtml(html);
 
         // Select table by ID

@@ -1,16 +1,14 @@
-﻿using System.Windows.Media;
-
-public static class ColorHelper
+﻿public static class ColorHelper
 {
-    public static Brush FromHex(string hex)
+    public static System.Windows.Media.Brush FromHex(string hex)
     {
         try
         {
-            return (SolidColorBrush)(new BrushConverter().ConvertFrom(hex)!);
+            return (System.Windows.Media.SolidColorBrush)(new System.Windows.Media.BrushConverter().ConvertFrom(hex)!);
         }
         catch
         {
-            return Brushes.Transparent; // fallback safety
+            return System.Windows.Media.Brushes.Transparent; // fallback safety
         }
     }
 }
