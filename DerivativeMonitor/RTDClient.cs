@@ -89,6 +89,7 @@ public class RTDClient
     {
 
         string side = isCall ? option.CallCodigo : option.PutCodigo;
+        var fieldFormats = isCall ? appConfig.CallFieldFormats : appConfig.PutFieldFormats;
         // these are the parameters that should ploted on chart
         var parametersToMonitor = isCall ? appConfig.CallParametersToMonitor : appConfig.PutParametersToMonitor;
         var topics = isCall ? option.CallTopics : option.PutTopics;
@@ -101,12 +102,12 @@ public class RTDClient
         {
             Array topic = new object[] { side + appConfig.DerivativesSuffix, parameter.Value };
             object? raw = _rtdServer!.ConnectData(topicId, topic, true);
-            string formatted = FieldFormatter.Format(raw?.ToString(), appConfig.FieldFormats[parameter.Value]);
+            string formatted = FieldFormatter.Format(raw?.ToString(), fieldFormats[parameter.Value]);
 
             parameters[parameter.Value] = formatted;
             topics[topicId.ToString()] = parameter.Value;
 
-            if (parameter.Value == appConfig.Chart["Parameter"].ToString())
+            if (parameter.Value == appConfig.Chart.Parameter.ToString())
             {
                 var chartRow = chartLookup[option.Strike];
                 chartRow.Parameter = parameter.Value;
@@ -151,19 +152,19 @@ public class RTDClient
                     Logger.Log($"Received topic ID: {topicId}, value: {topicValue} from RefreshData");
                     if ((int)topicId == 2)
                     {
-                        _stockData.LastPrice = FieldFormatter.Format(topicValue.ToString(), _appConfig.FieldFormats["money_br"]);
+                        _stockData.LastPrice = FieldFormatter.Format(topicValue.ToString(), "money_br");
                         Logger.Log($"Updated stock price with value: {_stockData.LastPrice}");
                     }
                     else if (_topicBindings.TryGetValue((int)topicId, out var binding))
                     {
                         if (binding.IsCall)
                         {
-                            binding.Option.CallParameters[binding.Parameter] = FieldFormatter.Format(topicValue.ToString(), _appConfig.FieldFormats[binding.Parameter]);
+                            binding.Option.CallParameters[binding.Parameter] = FieldFormatter.Format(topicValue.ToString(), _appConfig.CallFieldFormats[binding.Parameter]);
                             Logger.Log($"Updated option {binding.Option.CallCodigo} CallParameters[{binding.Parameter}] with value: {binding.Option.CallParameters[binding.Parameter]}");
                         }
                         else
                         {
-                            binding.Option.PutParameters[binding.Parameter] = FieldFormatter.Format(topicValue.ToString(), _appConfig.FieldFormats[binding.Parameter]);
+                            binding.Option.PutParameters[binding.Parameter] = FieldFormatter.Format(topicValue.ToString(), _appConfig.PutFieldFormats[binding.Parameter]);
                             Logger.Log($"Updated option {binding.Option.PutCodigo} PutParameters[{binding.Parameter}] with value: {binding.Option.PutParameters[binding.Parameter]}");
                         }
                     }

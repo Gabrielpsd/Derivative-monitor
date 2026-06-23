@@ -2,17 +2,17 @@
 
 public static class Logger
 {
-    private static readonly string _filePath = "debug.log";
+    private static string _filePath = "debug.log";
     private static Boolean LoggOptions = true;
     private static Boolean Logging = true;
 
-    public static void configureLogging(bool LogOptions, bool logSteps)
+    public static void configureLogging(bool LogOptions, bool logSteps, AppConfig config)
     {
         Logger.Log($"Logging configured. LogOptions: {LogOptions}, LogSteps: {logSteps}");
 
         LoggOptions = LogOptions;
         Logging = logSteps;
-
+        _filePath = config.LogFileName + ".log";
     }
     public static void Log(string message)
     {

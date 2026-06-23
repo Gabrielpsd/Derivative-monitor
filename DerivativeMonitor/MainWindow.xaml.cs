@@ -203,7 +203,7 @@ namespace DerivativeMonitor
             ConfigManager.Validate(_appConfig);
 
             Logger.Log("Configuration validated successfully. Ticker: " + _appConfig.Ticker);
-            Logger.configureLogging(_appConfig.debugOptions, _appConfig.debugSteps);
+            Logger.configureLogging(_appConfig.debugOptions, _appConfig.debugSteps, _appConfig);
             Logger.Log($"Configuration loaded: {JsonSerializer.Serialize(_appConfig, new JsonSerializerOptions { WriteIndented = true })}");
             
             TickerInput.Text = _appConfig.Ticker;
@@ -279,7 +279,7 @@ namespace DerivativeMonitor
             LabelClose.Content = _stockData.LastPrice;
             LabelOpening.Content = _stockData.OpeningPrice;
             Logger.Log("Stock Data" + _stockData);
-            ChartHandler.BuildChart(_chartLookup, _appConfig, WpfPlot1, _stockData, _priceLine);
+            ChartHandler.BuildChart(_chartLookup, _appConfig, WpfPlot1, _stockData, ref _priceLine);
             _orderedChartRows = _chartLookup.OrderBy(x => x.Key).Select(x => x.Value).ToList(); ;
 
             _hoverCrosshair = WpfPlot1.Plot.Add.Crosshair(0, 0);
@@ -371,7 +371,7 @@ namespace DerivativeMonitor
                                 NumberStyles.Any,
                                 new CultureInfo("pt-BR"),
                                 out decimal lastPriceDecimal);
-                        ChartHandler.UpdatePriceLine(lastPriceDecimal, _chartLookup, _priceLine);
+                        ChartHandler.UpdatePriceLine(lastPriceDecimal, _chartLookup, ref _priceLine);
                         ChartHandler.RefreshChart(WpfPlot1);
                         LabelClose.Content = _stockData.LastPrice;
                     }
@@ -425,9 +425,6 @@ namespace DerivativeMonitor
 
         private void WpfPlot1_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            Logger.Log("Mouse moved over chart at position: " + e.GetPosition(WpfPlot1));
-            Logger.Log("Current hover index: " + _lastHoverIndex);
-            Logger.Log("Total chart rows: " + _orderedChartRows.Count);
             if (_orderedChartRows.Count == 0) return;
 
             // (a) WPF mouse position -> ScottPlot pixel. DisplayScale is the WPF-specific bit.

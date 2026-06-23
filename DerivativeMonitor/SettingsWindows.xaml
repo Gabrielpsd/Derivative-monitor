@@ -6,8 +6,22 @@
         xmlns:local="clr-namespace:DerivativeMonitor"
         WindowStartupLocation="CenterOwner"
         mc:Ignorable="d"
-        Title="Configuração" Height="800" Width="500">
-    <Grid>
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        Title="Configuração" Height="773" Width="1004">
+
+    <Window.Resources>
+        <x:Array x:Key="FieldFormatOptions" Type="{x:Type sys:String}">
+            <sys:String>money_us</sys:String>
+            <sys:String>money_br</sys:String>
+            <sys:String>number</sys:String>
+            <sys:String>percent</sys:String>
+            <sys:String>integer</sys:String>
+            <sys:String>date</sys:String>
+            <sys:String>text</sys:String>
+        </x:Array>
+    </Window.Resources>
+
+    <Grid Margin="0,0,0,42">
         <DockPanel Margin="12">
 
             <!-- Buttons pinned to the bottom -->
@@ -19,41 +33,100 @@
 
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
-                    <GroupBox Header="Geral" Margin="6">
-                        <StackPanel Margin="6">
+                    <UniformGrid Columns="3" >
+                        <GroupBox Margin="6">
+                            <GroupBox.Header>
+                                <local:LabelHelper LabelText="Geral" HelpText="Parâmetros de configuração Geral"   Margin="0 0 0 0"/>
+                            </GroupBox.Header>
+                            <StackPanel Margin="6">
 
-                            <local:LabelHelper LabelText="Ticker" HelpText="O ticker do ativo que deseja monitorar"/>
-                            <TextBox Text="{Binding Ticker}"/>
+                                <local:LabelHelper LabelText="Ticker" HelpText="O ticker do ativo que deseja monitorar"/>
+                                <TextBox Text="{Binding Ticker}"/>
 
-                            <local:LabelHelper LabelText="Sufixo do ativo" HelpText="Tipo do ativo (Ordinaria = 3 ou preferencial =4 ) + suffixo de acordo com a tabela &#x0a;F_0 - Ativos&#x0a;B_0 - Ativos Bovespa&#x0a;X_0 - Ativos Dow Jones&#x0a;Y_0 - Ativos NYSE&#x0a;N_0 - Ativos NASDAQ&#x0a;Exemplo: PETR -> 4B_0 (4 = preferencial, B_0 = Bovespa)"/>
-                            <TextBox Text="{Binding TicketSuffix}"/>
-                        </StackPanel>
-                    </GroupBox>
+                                <local:LabelHelper LabelText="Sufixo do ativo" HelpText="Tipo do ativo (Ordinaria = 3 ou preferencial =4 ) + suffixo de acordo com a tabela &#x0a;F_0 - Ativos&#x0a;B_0 - Ativos Bovespa&#x0a;X_0 - Ativos Dow Jones&#x0a;Y_0 - Ativos NYSE&#x0a;N_0 - Ativos NASDAQ&#x0a;Exemplo: PETR -> 4B_0 (4 = preferencial, B_0 = Bovespa)"/>
+                                <TextBox Text="{Binding TicketSuffix}"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <GroupBox  Margin="6">
+                            <GroupBox.Header>
+                                <local:LabelHelper LabelText="Parametros WEB" HelpText="Parâmetros de configuração dos parametros de busca na internet"   Margin="0 0 0 0"/>
+                            </GroupBox.Header>
+                            <StackPanel Margin="6">
 
-                    <GroupBox>
-                        <GroupBox.Header>
-                            <local:LabelHelper LabelText="Configuração de intervalos" HelpText="Parâmetros de configuração dos intervalos de atualização"   Margin="0 0 0 0"/>
-                        </GroupBox.Header>
-                        <StackPanel Margin="6">
-                            <local:LabelHelper LabelText="Intervalo de atualização dos ativos RTD (ms)" HelpText="O intervalo de atualização em milissegundos"/>
-                            <TextBox Text="{Binding RefreshIntervalMilliseconds}"/>
+                                <local:LabelHelper LabelText="Link " HelpText="Link de onde as opções em aberto são listadas "/>
+                                <TextBox Text="{Binding BaseUrl}"/>
 
-                            <local:LabelHelper LabelText="Intervalo do scraper (min)" HelpText="O intervalo de tempo sa cada nova busca de opções no site da B3 em minutos"   Margin="0 8 0 0"/>
-                            <TextBox Text="{Binding ScraperIntervalMinutes}"/>
-                        </StackPanel>
-                    </GroupBox>
-                    <GroupBox Header="Logs" Margin="0 10 0 0" ToolTip="Configurações de log, utilizar somente para fins de depuração, recomendado deixar desligado para auemtnar desempenho">
-                        <StackPanel Margin="6">
-                            <CheckBox  IsChecked="{Binding debugOptions}">
-                                <local:LabelHelper LabelText="Logs detalhados (debugOptions)" HelpText="Imprime as opções retornadas no webScrapper"   Margin="0 0 0 0"/>
+                                <local:LabelHelper LabelText="Tabela de opções de venda" HelpText="Nome da tabela onde estão as opções de venda (put) no site"/>
+                                <TextBox Text="{Binding PutOptionTableOnWeb}"/>
 
-                            </CheckBox>
-                            <CheckBox IsChecked="{Binding debugSteps}" Margin="0 6 0 0">
-                                <local:LabelHelper LabelText="Logs de passos (debugSteps)" HelpText="Imprime no arquivo de log cada etapa que esta sendo executada"   Margin="0 0 0 0"/>
-                            </CheckBox>
-                        </StackPanel>
-                    </GroupBox>
-                    <GroupBox>
+                                <local:LabelHelper LabelText="Tabela de opções de compra" HelpText="Nome da tabela onde estão as opções de compra (call) no site"/>
+                                <TextBox Text="{Binding CallOptionTableOnWeb}"/>
+                            </StackPanel>
+                        </GroupBox>
+                        <GroupBox Header="Gráfico" ToolTip="Configurações do gráfico" Margin="6">
+                            <StackPanel Margin="6">
+                                <local:LabelHelper LabelText="Formato do campo" HelpText="Formato da data das colunas do Grafico"/>
+
+                                <ComboBox SelectedItem="{Binding Chart.Parameter}"
+                ItemsSource="{Binding AvailableCodes, RelativeSource={RelativeSource AncestorType=Window}}"/>
+
+                                <!-- FieldFormatChart: reuse the same format list as the grid -->
+                                <local:LabelHelper LabelText="Formato do valor" 
+             HelpText="Como o valor do gráfico é exibido."/>
+                                <ComboBox ItemsSource="{StaticResource FieldFormatOptions}" SelectedItem="{Binding Chart.FieldFormatChart}"/>
+                                <!-- Axis titles: plain text -->
+                                <local:LabelHelper LabelText="Título do eixo X" Margin="0 8 0 0"
+         HelpText="Rótulo do eixo horizontal."/>
+                                <TextBox Text="{Binding Chart.XAxisTitle}"/>
+
+                                <local:LabelHelper LabelText="Título do eixo Y" Margin="0 8 0 0"
+         HelpText="Rótulo do eixo vertical."/>
+                                <TextBox Text="{Binding Chart.YAxisTitle}"/>
+                            </StackPanel>
+                        </GroupBox>
+                        <GroupBox Margin="6">
+                            <GroupBox.Header>
+                                <local:LabelHelper LabelText="Configuração de intervalos" HelpText="Parâmetros de configuração dos intervalos de atualização"  />
+                            </GroupBox.Header>
+                            <StackPanel Margin="6">
+                                <local:LabelHelper LabelText="Intervalo de atualização dos ativos RTD (ms)" HelpText="O intervalo de atualização em milissegundos"/>
+                                <TextBox Text="{Binding RefreshIntervalMilliseconds}"/>
+
+                                <local:LabelHelper LabelText="Intervalo do scraper (min)" HelpText="O intervalo de tempo sa cada nova busca de opções no site da B3 em minutos"   Margin="0 8 0 0"/>
+                                <TextBox Text="{Binding ScraperIntervalMinutes}"/>
+                            </StackPanel>
+                        </GroupBox>
+                        <GroupBox ToolTip="Configurações de log, utilizar somente para fins de depuração, recomendado deixar desligado para auemtnar desempenho" Margin="6">
+                            <GroupBox.Header>
+                                <local:LabelHelper LabelText="Logs e depuração" HelpText="Parametros ativam os logs de depuração, "  />
+                            </GroupBox.Header>
+                            <StackPanel Margin="6">
+                                <local:LabelHelper LabelText="Nome do arquivo de log" HelpText="Arquivo gerado durante a depuração"   Margin="0 8 0 0"/>
+                                <TextBox Text="{Binding LogFileName}"/>
+
+                                <CheckBox  IsChecked="{Binding debugOptions}" Margin="0 8 0 0">
+                                    <local:LabelHelper LabelText="Logs detalhados (debugOptions)" HelpText="Imprime as opções retornadas no webScrapper"  />
+
+                                </CheckBox>
+                                <CheckBox IsChecked="{Binding debugSteps}" Margin="0 6 0 0">
+                                    <local:LabelHelper LabelText="Logs de passos (debugSteps)" HelpText="Imprime no arquivo de log cada etapa que esta sendo executada"   Margin="0 0 0 0"/>
+                                </CheckBox>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <GroupBox ToolTip="Configurações de log, utilizar somente para fins de depuração, recomendado deixar desligado para auemtnar desempenho" Margin="6">
+                            <GroupBox.Header>
+                                <local:LabelHelper LabelText="Banco de dados" HelpText="Parametros relativos ao banco de dados"  />
+                            </GroupBox.Header>
+                            <StackPanel Margin="6">
+                                <local:LabelHelper LabelText="Caminho do banco" HelpText="Endereço completo to banco de dados. Exemplo: C:\Dados\BancoDeDados.db.&#x0a;&#x0a;Caso seja colocado somente o nome do banco de dados o mesmo será criado &#x0a;na mesma pasta que o programa esta sendo executado "   Margin="0 8 0 0"/>
+                                <TextBox Text="{Binding DatabasePath}"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                    </UniformGrid>
+                    <GroupBox Margin="6">
                         <GroupBox.Header>
                             <local:LabelHelper LabelText="Parâmetros Call" HelpText="Parametros que pertencem às opções de compra&#x0a;Ex: 'Preço de Bertura': 'ABE' &#x0a;OBS: Parâmetros inexistentes não causam erros, porém nenhum valor é retornado"   Margin="0 0 0 0"/>
                         </GroupBox.Header>
@@ -65,11 +138,22 @@
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Parameter" Binding="{Binding Parameter}" Width="*"/>
                                 <DataGridTextColumn Header="Value"     Binding="{Binding Value}"     Width="*"/>
+                                <DataGridTemplateColumn Width="*">
+                                    <DataGridTemplateColumn.Header>
+                                        <local:LabelHelper LabelText="Formato do campo" HelpText="Define o formato do campo para exibição na grade, os formatos disponíveis são: money_us -> US$ 1,000.00 &#x0a; money_br -> R$ 1.000,00 &#x0a; number -> 1,000 &#x0a; percent - > 100% &#x0a; integer-> 100&#x0a; date -> 10/01/2023 &#x0a;e text = 1000" Margin="0"/>
+                                    </DataGridTemplateColumn.Header>
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ComboBox ItemsSource="{StaticResource FieldFormatOptions}"
+                                              SelectedItem="{Binding Format, UpdateSourceTrigger=PropertyChanged}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
                     </GroupBox>
 
-                    <GroupBox>
+                    <GroupBox Margin="6">
                         <GroupBox.Header>
                             <local:LabelHelper LabelText="Parâmetros Call" HelpText="Parametros que pertencem às opções de compra&#x0a;Ex: 'Preço de Bertura': 'ABE' &#x0a;OBS: Parâmetros inexistentes não causam erros, porém nenhum valor é retornado"   Margin="0 0 0 0"/>
                         </GroupBox.Header>
@@ -81,6 +165,17 @@
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Parameter" Binding="{Binding Parameter}" Width="*"/>
                                 <DataGridTextColumn Header="Value"     Binding="{Binding Value}"     Width="*"/>
+                                <DataGridTemplateColumn Width="*">
+                                    <DataGridTemplateColumn.Header>
+                                        <local:LabelHelper LabelText="Formato do campo" HelpText="Define o formato do campo para exibição na grade, os formatos disponíveis são: money_us -> US$ 1,000.00 &#x0a; money_br -> R$ 1.000,00 &#x0a; number -> 1,000 &#x0a; percent - > 100% &#x0a; integer-> 100&#x0a; date -> 10/01/2023 &#x0a;e text = 1000" Margin="0"/>
+                                    </DataGridTemplateColumn.Header>
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ComboBox ItemsSource="{StaticResource FieldFormatOptions}"
+                                                SelectedItem="{Binding Format, UpdateSourceTrigger=PropertyChanged}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
                     </GroupBox>

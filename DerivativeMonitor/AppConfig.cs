@@ -13,7 +13,9 @@
     public string BaseUrl { get; set; } = "";
 
     // caminho do banco de dados onde as opções serão salvas, ex: "options.db", "C:\\data\\options.db", etc.
-    public string DatabasePath { get; set; } = "";
+    public string DatabasePath { get; set; } = "options.db";
+
+    public string LogFileName { get; set; } = "Log";
 
     // No sistema do Profit os ativos são identificados por um código que é composto pelo ticker do ativo seguido de um sufixo específico para opções,
     // ex: "PETR" + "_B_0" = "PETR_B_0" para opções da Apple. O sufixo pode variar dependendo do sistema ou corretora, então é importante configurá-lo corretamente para garantir que as opções sejam identificadas corretamente no banco de dados e no sistema de negociação.
@@ -38,12 +40,12 @@
 
     public Dictionary<string, string> PutParametersToMonitor { get; set; } = new Dictionary<string, string>();
 
-    public Dictionary<string, string> FieldFormats { get; set; } = new Dictionary<string, string>();
+    public Dictionary<string, string> CallFieldFormats { get; set; } = new Dictionary<string, string>();
+    public Dictionary<string, string> PutFieldFormats { get; set; } = new Dictionary<string, string>();
 
     public UiColors Colors { get; set; } = new UiColors();
 
-    public Dictionary<string, decimal> AlertThresholdsPercentage { get; set; } = new Dictionary<string, decimal>();
-    public Dictionary<string, string> Chart { get; set; } = new Dictionary<string, string>();
+  public ChartSettings Chart { get; set; } = new ChartSettings();
 }
 
 public class UiColors
@@ -68,5 +70,17 @@ public class UiColors
     public string ChartPut { get; set; } = "#F44336";     // Red
 
     public string ChartActualPrice { get; set; } = "#2196F3";     // Blue
+
+}
+
+public class ChartSettings {
+
+    public string Parameter { get; set; } = "CAB";
+
+    public string FieldFormatChart { get; set; } = "text";
+
+    public string XAxisTitle { get; set; } = "Preço de Strike";
+
+    public string YAxisTitle { get; set; } = "Quantidade de contratos";
 
 }

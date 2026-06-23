@@ -5,7 +5,7 @@ using ScottPlot.WPF;
 using System.Globalization;
 public static class ChartHandler
 {
-    public static void BuildChart(Dictionary<decimal, ChartRow> chartLookup, AppConfig _appConfig, WpfPlot wpfPlot, StockData stockData , VerticalLine priceLine)
+    public static void BuildChart(Dictionary<decimal, ChartRow> chartLookup, AppConfig _appConfig, WpfPlot wpfPlot, StockData stockData , ref VerticalLine priceLine)
     {
         wpfPlot.Plot.Clear();
         string[] categorieNames = { "Put", "Call" };
@@ -41,7 +41,7 @@ public static class ChartHandler
 
             //var chartRow = chartLookup.ElementAt(i).Value;
 
-            tickGen.AddMajor(i, FieldFormatter.Format(current.Strike.ToString(), _appConfig.FieldFormats[current.Parameter]));
+            tickGen.AddMajor(i, FieldFormatter.Format(current.Strike.ToString(), _appConfig.Chart.FieldFormatChart));
 
             if (current.Strike <= lastPriceDecimal &&
                  next.Strike >= lastPriceDecimal)
@@ -60,7 +60,7 @@ public static class ChartHandler
                     Logger.Log($"Price line position: {position}");
                     tickGen.AddMajor(
                             position,
-                            FieldFormatter.Format(lastPriceDecimal.ToString(), _appConfig.FieldFormats[current.Parameter]));
+                            FieldFormatter.Format(lastPriceDecimal.ToString(), _appConfig.Chart.FieldFormatChart));
 
                     priceLine = wpfPlot.Plot.Add.VerticalLine(position);
 
@@ -74,7 +74,8 @@ public static class ChartHandler
         putSeries.Color = new ScottPlot.Color(_appConfig.Colors.ChartPut);
         callSeries.Color = new ScottPlot.Color(_appConfig.Colors.ChartCall);
         wpfPlot.Plot.Axes.Bottom.TickGenerator = tickGen;
-
+        wpfPlot.Plot.XLabel(_appConfig.Chart.XAxisTitle);
+        wpfPlot.Plot.YLabel(_appConfig.Chart.YAxisTitle);
 
         wpfPlot.Plot.ShowLegend(Alignment.UpperLeft);
         wpfPlot.Plot.Axes.Margins(bottom: 0);
@@ -115,14 +116,16 @@ public static class ChartHandler
 
     public static void UpdatePriceLine(
     decimal price,
-    Dictionary<decimal, ChartRow> chartLookup, VerticalLine priceLine)
+    Dictionary<decimal, ChartRow> chartLookup, ref VerticalLine priceLine)
     {
         if (priceLine == null)
             return;
+        Logger.Log($"Updating price line with price: {price}");
 
         double position =
             GetPricePosition(chartLookup, price);
 
+        Logger.Log($"Calculated price line position: {position}");
         priceLine.X = position;
         priceLine.Text = $"{price}";
     }
